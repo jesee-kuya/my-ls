@@ -45,3 +45,30 @@ func parseArgs(args []string) (print.Flags, []string) {
 
 	return flags, paths
 }
+
+func parseArgs(args []string) (Flags, []string) {
+	var flags Flags
+	var paths []string
+
+	for _, arg := range args {
+		if strings.HasPrefix(arg, "-") {
+			// Handle flags - loop through each character after the dash
+			for _, char := range arg[1:] {
+				switch char {
+				case 'a':
+					flags.ShowHidden = true
+				}
+			}
+		} else {
+			// It's a path
+			paths = append(paths, arg)
+		}
+	}
+
+	// Default to current directory if no paths specified
+	if len(paths) == 0 {
+		paths = []string{"."}
+	}
+
+	return flags, paths
+}
