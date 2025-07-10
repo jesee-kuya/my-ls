@@ -2,13 +2,10 @@ package print
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/jesee-kuya/my-ls/util"
 )
-
-var ansiPrefix = regexp.MustCompile(`^\x1b\[[0-9;]*m`)
 
 func Print(paths []string) {
 	outErrors := []string{}
@@ -55,7 +52,7 @@ func Print(paths []string) {
 			fmt.Print(file + "\n\n")
 			continue
 		}
-		fmt.Println(file)
+		fmt.Print(file + "  ")
 	}
 
 	for i, c := range content {
@@ -63,7 +60,7 @@ func Print(paths []string) {
 			fmt.Println()
 		}
 		for i, line := range c.([]string) {
-			if strings.HasPrefix(util.StripANSI(line), ".") && HasANSIPrefix(line) {
+			if strings.HasPrefix(util.StripANSI(line), ".") && util.HasANSIPrefix(line) {
 				if i == len(c.([]string))-1 {
 					fmt.Println()
 				}
@@ -73,7 +70,7 @@ func Print(paths []string) {
 				fmt.Println(line)
 				continue
 			}
-			if HasANSIPrefix(line) {
+			if util.HasANSIPrefix(line) {
 				fmt.Print(line + "  ")
 				continue
 			} else {
@@ -81,8 +78,4 @@ func Print(paths []string) {
 			}
 		}
 	}
-}
-
-func HasANSIPrefix(s string) bool {
-	return ansiPrefix.MatchString(s)
 }
