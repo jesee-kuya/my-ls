@@ -7,6 +7,10 @@ import (
 	"github.com/jesee-kuya/my-ls/util"
 )
 
+type Flags struct {
+	ShowHidden bool // -a flag
+}
+
 func main() {
 	paths := []string{"."}
 	if len(os.Args) > 1 {
