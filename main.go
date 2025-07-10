@@ -13,30 +13,36 @@ type Flags struct {
 }
 
 func main() {
-	paths := []string{"."}
-	if len(os.Args) > 1 {
-		paths = os.Args[1:]
-	}
+	// Parse command-line arguments using parseArgs
+	flags, paths := parseArgs(os.Args[1:]) // Pass os.Args[1:] to skip the program name
 
 	for _, dirPath := range paths {
+		// Validate if the path is a valid directory
 		info, err := util.IsValidDir(dirPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			return
+			continue // Continue with the next path instead of exiting
 		}
 
+		// If it's not a directory, print the file name and continue
 		if !info.IsDir() {
 			fmt.Println(info.Name())
-			return
+			continue
 		}
 
+		// Read directory contents
 		files, err := util.ReadDirNames(dirPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading directory: %v\n", err)
-			return
+			fmt.Fprintf(os.Stderr, "Error reading directory %s: %v\n", dirPath, err)
+			continue
 		}
 
+		// Filter files based on ShowHidden flag
 		for _, name := range files {
+			// Skip hidden files (starting with '.') unless ShowHidden is true
+			if !flags.ShowHidden && strings.HasPrefix(name, ".") {
+				continue
+			}
 			fmt.Println(name)
 		}
 	}
