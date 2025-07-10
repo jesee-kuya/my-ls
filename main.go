@@ -54,8 +54,10 @@ func main() {
 		fmt.Println(file)
 	}
 
-	for _, content := range dirContents {
+	for i, content := range dirContents {
 		fmt.Print(content + "  ")
+		if i == len(dirContents)-1 {
+			fmt.Println()
+		}
 	}
-	fmt.Println()
 }
