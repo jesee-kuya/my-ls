@@ -1,18 +1,16 @@
 package util
 
 import (
-	"errors"
+	"fmt"
 	"os"
 )
 
 // IsValidDir ensures dirPath is a valid directory
-func IsValidDir(dirPath string) (bool, error) {
+func IsValidDir(dirPath string) (bool, os.FileInfo, error) {
 	info, err := os.Stat(dirPath)
 	if err != nil {
-		return false, errors.New("directory does not exist")
+		return false, nil, fmt.Errorf("cannot access '%v': No such file or directory", dirPath)
 	}
-	if !info.IsDir() {
-		return false, errors.New("not a directory")
-	}
-	return true, nil
+
+	return true, info, nil
 }
