@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -19,7 +20,11 @@ func ReadDirNames(dirPath string) ([]string, error) {
 
 	var names []string
 	for _, entry := range entries {
-		names = append(names, entry.Name())
+		if entry.IsDir() {
+			names = append(names, fmt.Sprintf("%v%v", "\x1b[34m", entry.Name()))
+		} else {
+			names = append(names, fmt.Sprintf("%v%v", "\x1b[0m", entry.Name()))
+		}
 	}
 
 	return names, nil
