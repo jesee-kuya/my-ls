@@ -8,29 +8,31 @@ import (
 )
 
 func main() {
-	dirPath := "."
+	paths := []string{"."}
 	if len(os.Args) > 1 {
-		dirPath = os.Args[1]
+		paths = os.Args[1:]
 	}
 
-	info, err := util.IsValidDir(dirPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		return
-	}
+	for _, dirPath := range paths {
+		info, err := util.IsValidDir(dirPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			return
+		}
 
-	if !info.IsDir() {
-		fmt.Println(info.Name())
-		return
-	}
+		if !info.IsDir() {
+			fmt.Println(info.Name())
+			return
+		}
 
-	files, err := util.ReadDirNames(dirPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading directory: %v\n", err)
-		return
-	}
+		files, err := util.ReadDirNames(dirPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading directory: %v\n", err)
+			return
+		}
 
-	for _, name := range files {
-		fmt.Println(name)
+		for _, name := range files {
+			fmt.Println(name)
+		}
 	}
 }
