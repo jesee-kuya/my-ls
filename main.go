@@ -19,7 +19,7 @@ func main() {
 	print.Print(paths, flags)
 }
 
-func parseArgs(args []string) (print.Flags, []string) {
+func ParseArgs(args []string) (print.Flags, []string) {
 	var flags print.Flags
 	var paths []string
 

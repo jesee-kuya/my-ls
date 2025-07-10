@@ -33,7 +33,7 @@ func Print(paths []string, flags any) {
 			continue
 		}
 
-		files, err := util.ReadDirNames(dirPath, flags.ShowHidden)
+		files, err := util.ReadDirNames(dirPath, true)
 		if err != nil {
 			outErrors = append(outErrors, fmt.Sprintf("Error reading directory: %v\n", err.Error()))
 			continue
