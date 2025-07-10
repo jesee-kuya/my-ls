@@ -1,0 +1,92 @@
+name: Test Go code
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.20'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Vet code
+      run: go vet ./...
+
+    - name: Run tests
+      run: go test ./...
+
+    - name: Format check
+      run: |
+        unformatted=$(gofmt -l .)
+        if [ -n "$unformatted" ]; then
+          echo "Unformatted files:"
+          echo "$unformatted"
+          exit 1
+        fi
+
+    - name: Block non-approved imports (strict mode)
+      run: |
+        echo "Scanning for unauthorized imports..."
+        allowed_imports="fmt os os/user strconv strings syscall time math/rand errors io/fs"
+
+        violations=0
+
+        while IFS= read -r file; do
+          while IFS= read -r line; do
+            if echo "$line" | grep -q '^import '; then
+              import_line=$(echo "$line" | sed -n 's/^import[[:space:]]\+"\([^"]*\)".*/\1/p')
+              if [ -n "$import_line" ]; then
+                if ! echo "$allowed_imports" | grep -qw "$import_line"; then
+                  echo "$file: Unauthorized import \"$import_line\""
+                  violations=$((violations+1))
+                fi
+              fi
+            fi
+          done < <(grep -E '^\s*import\s+"[^"]+"' "$file")
+
+          in_block=0
+          while IFS= read -r line; do
+            if echo "$line" | grep -q '^\s*import\s*(\s*$'; then
+              in_block=1
+              continue
+            fi
+            if [ "$in_block" -eq 1 ]; then
+              if echo "$line" | grep -q '^\s*)\s*$'; then
+                in_block=0
+                continue
+              fi
+              import_path=$(echo "$line" | sed -n 's/.*"\([^"]*\)".*/\1/p')
+              if [ -n "$import_path" ]; then
+                if ! echo "$allowed_imports" | grep -qw "$import_path"; then
+                  echo "$file: Unauthorized import \"$import_path\""
+                  violations=$((violations+1))
+                fi
+              fi
+            fi
+          done < "$file"
+        done < <(find . -name '*.go')
+
+        if [ "$violations" -gt 0 ]; then
+          echo "Build failed due to unauthorized imports."
+          exit 1
+        fi
