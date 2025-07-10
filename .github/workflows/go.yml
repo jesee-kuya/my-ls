@@ -48,6 +48,7 @@ jobs:
       run: |
         echo "Scanning for unauthorized imports..."
         allowed_imports="fmt os os/user strconv strings syscall time math/rand errors io/fs"
+        allowed_prefix="github.com/jesee-kuya/my-ls"
 
         violations=0
 
@@ -57,8 +58,10 @@ jobs:
               import_line=$(echo "$line" | sed -n 's/^import[[:space:]]\+"\([^"]*\)".*/\1/p')
               if [ -n "$import_line" ]; then
                 if ! echo "$allowed_imports" | grep -qw "$import_line"; then
-                  echo "$file: Unauthorized import \"$import_line\""
-                  violations=$((violations+1))
+                  if ! [[ "$import_line" == $allowed_prefix* ]]; then
+                    echo "$file: Unauthorized import \"$import_line\""
+                    violations=$((violations+1))
+                  fi
                 fi
               fi
             fi
@@ -78,8 +81,10 @@ jobs:
               import_path=$(echo "$line" | sed -n 's/.*"\([^"]*\)".*/\1/p')
               if [ -n "$import_path" ]; then
                 if ! echo "$allowed_imports" | grep -qw "$import_path"; then
-                  echo "$file: Unauthorized import \"$import_path\""
-                  violations=$((violations+1))
+                  if ! [[ "$import_path" == $allowed_prefix* ]]; then
+                    echo "$file: Unauthorized import \"$import_path\""
+                    violations=$((violations+1))
+                  fi
                 fi
               fi
             fi
