@@ -1,7 +1,6 @@
 package util
 
 import (
-	"errors"
 	"os"
 )
 
@@ -22,8 +21,6 @@ func ReadDirNames(dirPath string) ([]string, error) {
 	for _, entry := range entries {
 		names = append(names, entry.Name())
 	}
-	if names == nil {
-		return nil, errors.New("no entries found")
-	}
+
 	return names, nil
 }
