@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/jesee-kuya/my-ls/util"
 )
@@ -62,6 +63,12 @@ func main() {
 			fmt.Println()
 		}
 		for i, line := range c.([]string) {
+			if strings.HasPrefix(util.StripANSI(line), ".") {
+				if i == len(c.([]string))-1 {
+					fmt.Println()
+				}
+				continue
+			}
 			if i == len(c.([]string))-1 {
 				fmt.Println(line)
 				continue
