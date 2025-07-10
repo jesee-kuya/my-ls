@@ -32,7 +32,7 @@ func TestReadDirNames(t *testing.T) {
 			{
 				name:      "Valid directory with files",
 				input:     dirWithFiles,
-				want:      []string{"\x1b[0ma.txt", "\x1b[0mb.txt"},
+				want:      []string{"\033[0ma.txt\033[0m", "\033[0mb.txt\033[0m"},
 				expectErr: nil,
 			},
 			{
