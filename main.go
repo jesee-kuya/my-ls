@@ -31,7 +31,7 @@ func main() {
 		}
 
 		// Read directory contents
-		files, err := util.ReadDirNames(dirPath)
+		files, err := util.ReadDirNames(dirPath, flags.ShowHidden)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading directory %s: %v\n", dirPath, err)
 			continue
