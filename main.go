@@ -15,8 +15,11 @@ func main() {
 	multipleDirs := false
 
 	if len(os.Args) > 1 {
-		multipleDirs = true
 		paths = os.Args[1:]
+	}
+
+	if len(paths) > 1 {
+		multipleDirs = true
 	}
 
 	for _, dirPath := range paths {
