@@ -9,30 +9,50 @@ import (
 
 func main() {
 	paths := []string{"."}
+	outErrors := []string{}
+	singleFiles := []string{}
+	dirContents := []string{}
+	multipleDirs := false
+
 	if len(os.Args) > 1 {
+		multipleDirs = true
 		paths = os.Args[1:]
 	}
 
 	for _, dirPath := range paths {
 		info, err := util.IsValidDir(dirPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			return
+			outErrors = append(outErrors, fmt.Sprintf("Error: %v\n", err.Error()))
+			continue
 		}
 
 		if !info.IsDir() {
-			fmt.Println(info.Name())
-			return
+			singleFiles = append(singleFiles, dirPath)
+			continue
 		}
 
 		files, err := util.ReadDirNames(dirPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading directory: %v\n", err)
-			return
+			outErrors = append(outErrors, fmt.Sprintf("Error reading directory: %v\n", err.Error()))
+			continue
 		}
 
-		for _, name := range files {
-			fmt.Println(name)
+		if multipleDirs {
+			dirContents = append(dirContents, fmt.Sprintf("%v:\n", dirPath))
 		}
+
+		dirContents = append(dirContents, files...)
 	}
+	for _, err := range outErrors {
+		fmt.Println(err)
+	}
+
+	for _, file := range singleFiles {
+		fmt.Println(file)
+	}
+
+	for _, content := range dirContents {
+		fmt.Print(content + "  ")
+	}
+	fmt.Println()
 }
