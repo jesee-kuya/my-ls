@@ -12,6 +12,7 @@ func main() {
 	outErrors := []string{}
 	singleFiles := []string{}
 	dirContents := []string{}
+	content := []any{}
 	multipleDirs := false
 
 	if len(os.Args) > 1 {
@@ -22,7 +23,7 @@ func main() {
 		multipleDirs = true
 	}
 
-	for i, dirPath := range paths {
+	for _, dirPath := range paths {
 		info, err := util.IsValidDir(dirPath)
 		if err != nil {
 			outErrors = append(outErrors, fmt.Sprintf("Error: %v\n", err.Error()))
@@ -45,9 +46,8 @@ func main() {
 		}
 
 		dirContents = append(dirContents, files...)
-		if i != len(paths)-1 {
-			dirContents = append(dirContents, "\n\n")
-		}
+		content = append(content, dirContents)
+		dirContents = []string{}
 	}
 	for _, err := range outErrors {
 		fmt.Println(err)
@@ -57,14 +57,16 @@ func main() {
 		fmt.Println(file)
 	}
 
-	for i, content := range dirContents {
-		if i != 1 {
-			fmt.Print(content + "  ")
-		} else {
-			fmt.Print(content)
-		}
-		if i == len(dirContents)-1 {
+	for i, c := range content {
+		if i != 0 {
 			fmt.Println()
+		}
+		for i, line := range c.([]string) {
+			if i == len(c.([]string))-1 {
+				fmt.Println(line)
+				continue
+			}
+			fmt.Print(line + "  ")
 		}
 	}
 }
