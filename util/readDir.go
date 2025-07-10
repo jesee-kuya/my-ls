@@ -3,6 +3,7 @@ package util
 import (
 	"errors"
 	"os"
+	"strings"
 )
 
 // ReadDirNames returns a list of file and directory names in dirPath
@@ -20,7 +21,11 @@ func ReadDirNames(dirPath string, showHidden bool) ([]string, error) {
 
 	var names []string
 	for _, entry := range entries {
-		names = append(names, entry.Name())
+		name := entry.Name()
+		if !showHidden && strings.HasPrefix(name, ".") {
+			continue
+		}
+		names = append(names, name)
 	}
 	if names == nil {
 		return nil, errors.New("no entries found")
