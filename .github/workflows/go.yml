@@ -47,17 +47,25 @@ jobs:
     - name: Block non-approved imports (strict mode)
       run: |
         echo "Scanning for unauthorized imports..."
-        allowed_imports="fmt os os/user strconv strings syscall time math/rand errors io/fs path/filepath testing reflect sort"
+        allowed_imports="fmt os os/user strconv strings syscall time math/rand errors io/fs path/filepath testing reflect sort regexp"
         allowed_prefix="github.com/jesee-kuya/my-ls"
 
         violations=0
 
         while IFS= read -r file; do
+           if grep -q 'import.*"os/exec"' "$file"; then
+            echo "$file: Forbidden import detected: os/exec"
+            violations=$((violations+1))
+          fi
+
           while IFS= read -r line; do
             if echo "$line" | grep -q '^import '; then
               import_line=$(echo "$line" | sed -n 's/^import[[:space:]]\+"\([^"]*\)".*/\1/p')
               if [ -n "$import_line" ]; then
-                if ! echo "$allowed_imports" | grep -qw "$import_line"; then
+                if [ "$import_line" = "os/exec" ]; then
+                  echo "$file: Forbidden import detected: os/exec"
+                  violations=$((violations+1))
+                elif ! echo "$allowed_imports" | grep -qw "$import_line"; then
                   if ! [[ "$import_line" == $allowed_prefix* ]]; then
                     echo "$file: Unauthorized import \"$import_line\""
                     violations=$((violations+1))
@@ -78,9 +86,12 @@ jobs:
                 in_block=0
                 continue
               fi
-              import_path=$(echo "$line" | sed -n 's/.*"\([^"]*\)".*/\1/p')
+               import_path=$(echo "$line" | sed -n 's/.*"\([^"]*\)".*/\1/p')
               if [ -n "$import_path" ]; then
-                if ! echo "$allowed_imports" | grep -qw "$import_path"; then
+                if [ "$import_path" = "os/exec" ]; then
+                  echo "$file: Forbidden import detected in block: os/exec"
+                  violations=$((violations+1))
+                elif ! echo "$allowed_imports" | grep -qw "$import_path"; then
                   if ! [[ "$import_path" == $allowed_prefix* ]]; then
                     echo "$file: Unauthorized import \"$import_path\""
                     violations=$((violations+1))

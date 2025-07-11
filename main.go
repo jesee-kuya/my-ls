@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
-	"github.com/jesee-kuya/my-ls/util"
+	"github.com/jesee-kuya/my-ls/print"
 )
 
 type Flags struct {
@@ -14,38 +13,10 @@ type Flags struct {
 
 func main() {
 	// Parse command-line arguments using parseArgs
-	flags, paths := parseArgs(os.Args[1:]) // Pass os.Args[1:] to skip the program name
+	flags, paths := parseArgs(os.Args[1:])
 
-	for _, dirPath := range paths {
-		// Validate if the path is a valid directory
-		info, err := util.IsValidDir(dirPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			continue // Continue with the next path instead of exiting
-		}
-
-		// If it's not a directory, print the file name and continue
-		if !info.IsDir() {
-			fmt.Println(info.Name())
-			continue
-		}
-
-		// Read directory contents
-		files, err := util.ReadDirNames(dirPath, flags.ShowHidden)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading directory %s: %v\n", dirPath, err)
-			continue
-		}
-
-		// Filter files based on ShowHidden flag
-		for _, name := range files {
-			// Skip hidden files (starting with '.') unless ShowHidden is true
-			if !flags.ShowHidden && strings.HasPrefix(name, ".") {
-				continue
-			}
-			fmt.Println(name)
-		}
-	}
+	// Use the print package with flags
+	print.Print(paths, flags)
 }
 
 func parseArgs(args []string) (Flags, []string) {

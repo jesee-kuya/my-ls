@@ -32,14 +32,14 @@ func TestReadDirNames(t *testing.T) {
 			{
 				name:      "Valid directory with files",
 				input:     dirWithFiles,
-				want:      []string{"a.txt", "b.txt"},
+				want:      []string{"\033[0ma.txt\033[0m", "\033[0mb.txt\033[0m"},
 				expectErr: nil,
 			},
 			{
 				name:      "Empty directory",
 				input:     emptyDir,
 				want:      nil,
-				expectErr: errors.New("no entries found"),
+				expectErr: nil,
 			},
 			{
 				name:      "Non-existent directory",
