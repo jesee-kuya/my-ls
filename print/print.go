@@ -8,7 +8,8 @@ import (
 
 // Flags represents command-line flags for my-ls
 type Flags struct {
-	ShowAll bool // -a flag: show all files including hidden ones
+	ShowAll bool
+	Longformat bool
 }
 
 func Print(paths []string, flags Flags) {
