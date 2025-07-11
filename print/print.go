@@ -8,7 +8,7 @@ import (
 
 // Flags represents command-line flags for my-ls
 type Flags struct {
-	ShowAll bool
+	ShowAll    bool
 	Longformat bool
 }
 
@@ -33,11 +33,20 @@ func Print(paths []string, flags Flags) {
 			singleFiles = append(singleFiles, dirPath)
 			continue
 		}
+		var files []string
 
-		files, err := util.ReadDirNames(dirPath, flags.ShowAll)
-		if err != nil {
-			outErrors = append(outErrors, fmt.Sprintf("Error reading directory: %v\n", err.Error()))
-			continue
+		if flags.Longformat {
+			files, err = util.ReadDirNamesLong(dirPath, flags.ShowAll)
+			if err != nil {
+				outErrors = append(outErrors, fmt.Sprintf("Error reading directory: %v\n", err.Error()))
+				continue
+			}
+		} else {
+			files, err = util.ReadDirNames(dirPath, flags.ShowAll)
+			if err != nil {
+				outErrors = append(outErrors, fmt.Sprintf("Error reading directory: %v\n", err.Error()))
+				continue
+			}
 		}
 
 		if multipleDirs {
@@ -53,6 +62,11 @@ func Print(paths []string, flags Flags) {
 	}
 
 	for i, file := range singleFiles {
+		if flags.Longformat {
+			fmt.Println(file)
+			continue
+		}
+
 		if i == len(singleFiles)-1 {
 			fmt.Print(file + "\n\n")
 			continue
@@ -65,6 +79,11 @@ func Print(paths []string, flags Flags) {
 			fmt.Println()
 		}
 		for i, line := range c.([]string) {
+			if flags.Longformat {
+				fmt.Println(line)
+				continue
+			}
+			
 			if i == len(c.([]string))-1 {
 				fmt.Println(line)
 				continue
