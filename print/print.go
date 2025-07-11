@@ -12,7 +12,7 @@ type Flags struct {
 	ShowAll bool // -a flag: show all files including hidden ones
 }
 
-func Print(paths []string) {
+func Print(paths []string, flags Flags) {
 	outErrors := []string{}
 	singleFiles := []string{}
 	dirContents := []string{}
