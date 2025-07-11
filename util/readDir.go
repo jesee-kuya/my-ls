@@ -118,21 +118,38 @@ func ReadDirNamesLong(dirPath string, showAll bool) ([]string, error) {
 	}
 
 	var lines []string
+	var totalBlocks int64
+	filesToShow := []os.FileInfo{}
 
-	// Optionally show . and .. with color
+	// Optionally include . and ..
 	if showAll {
-		lines = append(lines, formatLongEntry(".", dirPath))
-		lines = append(lines, formatLongEntry("..", dirPath))
+		for _, special := range []string{".", ".."} {
+			fullPath := filepath.Join(dirPath, special)
+			info, err := os.Lstat(fullPath)
+			if err == nil {
+				filesToShow = append(filesToShow, info)
+				stat := getStat(fullPath)
+				totalBlocks += int64(stat.Blocks)
+			}
+		}
 	}
 
 	for _, entry := range entries {
 		name := entry.Name()
-
 		if !showAll && strings.HasPrefix(name, ".") {
 			continue
 		}
+		filesToShow = append(filesToShow, entry)
+		stat := getStat(filepath.Join(dirPath, name))
+		totalBlocks += int64(stat.Blocks)
+	}
 
-		lines = append(lines, formatLongEntry(name, dirPath))
+	// Total line based on 512-byte blocks
+	lines = append(lines, fmt.Sprintf("total %d", totalBlocks/2))
+
+	for _, entry := range filesToShow {
+		line := formatLongEntry(entry.Name(), dirPath)
+		lines = append(lines, line)
 	}
 
 	return lines, nil
@@ -210,4 +227,10 @@ func getFileColor(mode os.FileMode, name string) string {
 	default:
 		return reset
 	}
+}
+
+func getStat(path string) syscall.Stat_t {
+	var stat syscall.Stat_t
+	_ = syscall.Stat(path, &stat)
+	return stat
 }
