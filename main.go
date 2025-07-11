@@ -40,10 +40,13 @@ func parseArgs(args []string) (Flags, []string) {
 }
 
 func main() {
-	paths := []string{"."}
+	var flags Flags
+	var paths []string
 
 	if len(os.Args) > 1 {
-		paths = os.Args[1:]
+		flags, paths = parseArgs(os.Args[1:])
+	} else {
+		paths = []string{"."}
 	}
 
 	print.Print(paths)
