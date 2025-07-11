@@ -7,6 +7,11 @@ import (
 	"github.com/jesee-kuya/my-ls/util"
 )
 
+// Flags represents command-line flags for my-ls
+type Flags struct {
+	ShowAll bool // -a flag: show all files including hidden ones
+}
+
 func Print(paths []string) {
 	outErrors := []string{}
 	singleFiles := []string{}
