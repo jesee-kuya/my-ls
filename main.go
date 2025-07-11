@@ -18,6 +18,8 @@ func parseArgs(args []string) (print.Flags, []string) {
 				switch char {
 				case 'a':
 					flags.ShowAll = true
+				case 'l':
+					flags.Longformat = true
 				}
 			}
 		} else {
