@@ -139,11 +139,17 @@ func TestReadDirNamesHiddenFiles(t *testing.T) {
 					t.Fatalf("unexpected error: %v", err)
 				}
 
-				sort.Strings(got)
+				// Strip ANSI colors for comparison since ReadDirNames now returns colored strings
+				var strippedGot []string
+				for _, name := range got {
+					strippedGot = append(strippedGot, StripANSI(name))
+				}
+
+				sort.Strings(strippedGot)
 				sort.Strings(tt.want)
 
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("expected %v, got %v", tt.want, got)
+				if !reflect.DeepEqual(strippedGot, tt.want) {
+					t.Errorf("expected %v, got %v", tt.want, strippedGot)
 				}
 			})
 		}

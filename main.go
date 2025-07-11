@@ -7,10 +7,6 @@ import (
 	"github.com/jesee-kuya/my-ls/print"
 )
 
-type Flags struct {
-	ShowHidden bool // -a flag
-}
-
 func main() {
 	// Parse command-line arguments using parseArgs
 	flags, paths := parseArgs(os.Args[1:])
@@ -19,8 +15,8 @@ func main() {
 	print.Print(paths, flags)
 }
 
-func parseArgs(args []string) (Flags, []string) {
-	var flags Flags
+func parseArgs(args []string) (print.Flags, []string) {
+	var flags print.Flags
 	var paths []string
 
 	for _, arg := range args {
