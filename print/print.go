@@ -83,7 +83,7 @@ func Print(paths []string, flags Flags) {
 				fmt.Println(line)
 				continue
 			}
-			
+
 			if i == len(c.([]string))-1 {
 				fmt.Println(line)
 				continue
