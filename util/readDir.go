@@ -32,6 +32,13 @@ func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 	}
 
 	var names []string
+
+	// Add . and .. entries when showAll is true
+	if showAll {
+		names = append(names, fmt.Sprintf("%s.%s", dirColour, reset))
+		names = append(names, fmt.Sprintf("%s..%s", dirColour, reset))
+	}
+
 	for _, entry := range entries {
 		name := entry.Name()
 
