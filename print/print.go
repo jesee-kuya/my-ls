@@ -11,7 +11,7 @@ type Flags struct {
 	ShowHidden bool // -a flag
 }
 
-func Print(paths []string, flags Flags) {
+func Print(paths []string, flags any) {
 	outErrors := []string{}
 	singleFiles := []string{}
 	dirContents := []string{}
