@@ -2,7 +2,6 @@ package print
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jesee-kuya/my-ls/util"
 )
@@ -65,12 +64,6 @@ func Print(paths []string, flags Flags) {
 			fmt.Println()
 		}
 		for i, line := range c.([]string) {
-			if strings.HasPrefix(util.StripANSI(line), ".") && util.HasANSIPrefix(line) {
-				if i == len(c.([]string))-1 {
-					fmt.Println()
-				}
-				continue
-			}
 			if i == len(c.([]string))-1 {
 				fmt.Println(line)
 				continue
