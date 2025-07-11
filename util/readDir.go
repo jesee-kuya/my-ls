@@ -34,6 +34,12 @@ func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 	var names []string
 	for _, entry := range entries {
 		name := entry.Name()
+
+		// Skip hidden files unless showAll is true
+		if !showAll && strings.HasPrefix(name, ".") {
+			continue
+		}
+
 		mode := entry.Mode()
 		colour := reset
 
