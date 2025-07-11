@@ -83,11 +83,20 @@ func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 	}
 
 	// Sort the names (excluding . and .. if they exist)
+	// We need to sort by the clean names (without ANSI codes)
 	if showAll && len(names) > 2 {
 		// Sort everything except the first two entries (. and ..)
-		sort.Strings(names[2:])
+		sort.Slice(names[2:], func(i, j int) bool {
+			cleanI := StripANSI(names[2+i])
+			cleanJ := StripANSI(names[2+j])
+			return cleanI < cleanJ
+		})
 	} else if !showAll {
-		sort.Strings(names)
+		sort.Slice(names, func(i, j int) bool {
+			cleanI := StripANSI(names[i])
+			cleanJ := StripANSI(names[j])
+			return cleanI < cleanJ
+		})
 	}
 
 	return names, nil
