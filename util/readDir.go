@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -79,6 +80,14 @@ func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 		}
 
 		names = append(names, fmt.Sprintf("%s%s%s", colour, name, reset))
+	}
+
+	// Sort the names (excluding . and .. if they exist)
+	if showAll && len(names) > 2 {
+		// Sort everything except the first two entries (. and ..)
+		sort.Strings(names[2:])
+	} else if !showAll {
+		sort.Strings(names)
 	}
 
 	return names, nil
