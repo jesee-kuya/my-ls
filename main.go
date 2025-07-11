@@ -12,8 +12,8 @@ type Flags struct {
 }
 
 // parseArgs parses command-line arguments and returns flags and paths
-func parseArgs(args []string) (Flags, []string) {
-	flags := Flags{}
+func parseArgs(args []string) (print.Flags, []string) {
+	flags := print.Flags{}
 	var paths []string
 
 	for _, arg := range args {
@@ -40,7 +40,7 @@ func parseArgs(args []string) (Flags, []string) {
 }
 
 func main() {
-	var flags Flags
+	var flags print.Flags
 	var paths []string
 
 	if len(os.Args) > 1 {
@@ -49,5 +49,5 @@ func main() {
 		paths = []string{"."}
 	}
 
-	print.Print(paths)
+	print.Print(paths, flags)
 }
