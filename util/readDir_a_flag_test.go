@@ -151,7 +151,7 @@ func TestReadDirNames_AFlag(t *testing.T) {
 				prev := StripANSI(sortedPortion[i-1])
 				curr := StripANSI(sortedPortion[i])
 				if prev > curr {
-					t.Errorf("Files not sorted correctly: %s should come before %s", curr, prev)
+					t.Errorf("Files not sorted correctly: %s should come before %s (prev: %s, curr: %s)", curr, prev, prev, curr)
 				}
 			}
 		}
