@@ -19,7 +19,7 @@ const (
 )
 
 // ReadDirNames returns a list of file and directory names in dirPath
-func ReadDirNames(dirPath string) ([]string, error) {
+func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 	dir, err := os.Open(dirPath)
 	if err != nil {
 		return nil, err
