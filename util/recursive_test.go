@@ -82,7 +82,7 @@ func TestCollectDirectoriesRecursively(t *testing.T) {
 
 		// Should include tempDir, dir1, subdir1, dir2 but not .hidden_dir
 		expectedDirs := []string{tempDir, dir1, subdir1, dir2}
-		
+
 		if len(dirs) != len(expectedDirs) {
 			t.Errorf("Expected %d directories, got %d: %v", len(expectedDirs), len(dirs), dirs)
 		}
@@ -117,7 +117,7 @@ func TestCollectDirectoriesRecursively(t *testing.T) {
 
 		// Should include tempDir, dir1, subdir1, dir2, and .hidden_dir
 		expectedDirs := []string{tempDir, dir1, subdir1, dir2, hiddenDir}
-		
+
 		if len(dirs) != len(expectedDirs) {
 			t.Errorf("Expected %d directories, got %d: %v", len(expectedDirs), len(dirs), dirs)
 		}
@@ -159,7 +159,7 @@ func TestCollectDirectoriesRecursively(t *testing.T) {
 
 		// Should include dir1, subdir1, dir2
 		expectedDirs := []string{dir1, subdir1, dir2}
-		
+
 		if len(dirs) != len(expectedDirs) {
 			t.Errorf("Expected %d directories, got %d: %v", len(expectedDirs), len(dirs), dirs)
 		}
@@ -219,7 +219,7 @@ func TestCollectSubdirectories(t *testing.T) {
 
 		// Should include subdir but not get stuck in infinite loop
 		expectedDirs := []string{subDir}
-		
+
 		if len(allDirs) != len(expectedDirs) {
 			t.Errorf("Expected %d directories, got %d: %v", len(expectedDirs), len(allDirs), allDirs)
 		}
