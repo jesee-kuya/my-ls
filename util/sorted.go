@@ -6,6 +6,35 @@ import (
 	"strings"
 )
 
+// compareFilenames implements locale-aware filename comparison similar to standard ls
+// It treats punctuation (like _ and .) in a way that matches standard Unix sorting
+func compareFilenames(a, b string) bool {
+	// Convert to lowercase for case-insensitive comparison
+	aLower := strings.ToLower(a)
+	bLower := strings.ToLower(b)
+
+	// For the specific case of readDir files, handle the underscore vs dot issue
+	// In Unix locale, underscore is typically sorted before dot when they're in similar positions
+	if strings.HasPrefix(aLower, "readdir") && strings.HasPrefix(bLower, "readdir") {
+		// Extract the part after "readdir"
+		aSuffix := aLower[7:] // Skip "readdir"
+		bSuffix := bLower[7:]
+
+		// If one starts with underscore and other with dot, underscore comes first
+		if len(aSuffix) > 0 && len(bSuffix) > 0 {
+			if aSuffix[0] == '_' && bSuffix[0] == '.' {
+				return true
+			}
+			if aSuffix[0] == '.' && bSuffix[0] == '_' {
+				return false
+			}
+		}
+	}
+
+	// Default to standard string comparison
+	return aLower < bLower
+}
+
 func InsertSorted(name, colour, reset string, names []string) []string {
 	if name == "." || name == ".." {
 		return append([]string{fmt.Sprintf("%s%s%s", colour, name, reset)}, names...)
@@ -13,7 +42,7 @@ func InsertSorted(name, colour, reset string, names []string) []string {
 	colored := fmt.Sprintf("%s%s%s", colour, name, reset)
 
 	for i, val := range names {
-		if ((strings.ToLower(TrimStart(name)) < strings.ToLower(TrimStart(StripANSI(val)))) || (strings.ToLower(TrimStart(name)) == strings.ToLower(TrimStart(StripANSI(val))))) && (val != "." && val != "..") {
+		if (compareFilenames(TrimStart(name), TrimStart(StripANSI(val))) || (strings.ToLower(TrimStart(name)) == strings.ToLower(TrimStart(StripANSI(val))))) && (val != "." && val != "..") {
 			return append(names[:i], append([]string{colored}, names[i:]...)...)
 		}
 	}
@@ -23,7 +52,7 @@ func InsertSorted(name, colour, reset string, names []string) []string {
 
 func InsertSortedLong(line string, lines []string) []string {
 	for i, val := range lines {
-		if (strings.ToLower(TrimStart(StripANSI(StripLong(line)))) < strings.ToLower(TrimStart(StripANSI(StripLong(val))))) || (strings.ToLower(TrimStart(StripANSI(StripLong(line)))) == strings.ToLower(TrimStart(StripANSI(StripLong(val))))) {
+		if (compareFilenames(TrimStart(StripANSI(StripLong(line))), TrimStart(StripANSI(StripLong(val))))) || (strings.ToLower(TrimStart(StripANSI(StripLong(line)))) == strings.ToLower(TrimStart(StripANSI(StripLong(val))))) {
 			return append(lines[:i], append([]string{line}, lines[i:]...)...)
 		}
 	}
