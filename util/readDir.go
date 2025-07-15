@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"sort"
 	"strings"
 	"syscall"
 )
@@ -368,6 +369,8 @@ func collectSubdirectories(dirPath string, flags Flags, allDirs *[]string, visit
 		return err
 	}
 
+	// Collect directories first, then sort them to match ls behavior
+	var subdirs []string
 	for _, entry := range entries {
 		name := entry.Name()
 
@@ -382,15 +385,23 @@ func collectSubdirectories(dirPath string, flags Flags, allDirs *[]string, visit
 		}
 
 		if entry.IsDir() {
-			subDirPath := joinPath(dirPath, name)
-			*allDirs = append(*allDirs, subDirPath)
+			subdirs = append(subdirs, name)
+		}
+	}
 
-			// Recursively process subdirectory
-			err = collectSubdirectories(subDirPath, flags, allDirs, visited)
-			if err != nil {
-				// Continue processing other directories even if one fails
-				continue
-			}
+	// Sort directories alphabetically to match standard ls behavior
+	sort.Strings(subdirs)
+
+	// Process sorted directories
+	for _, name := range subdirs {
+		subDirPath := joinPath(dirPath, name)
+		*allDirs = append(*allDirs, subDirPath)
+
+		// Recursively process subdirectory
+		err = collectSubdirectories(subDirPath, flags, allDirs, visited)
+		if err != nil {
+			// Continue processing other directories even if one fails
+			continue
 		}
 	}
 
