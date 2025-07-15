@@ -17,62 +17,86 @@ func TestParseArgs(t *testing.T) {
 		{
 			name:          "no arguments",
 			args:          []string{},
-			expectedFlags: util.Flags{ShowAll: false, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: false, Reverse: false, Recursive: false},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "only -a flag",
 			args:          []string{"-a"},
-			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false, Reverse: false, Recursive: false},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "only path",
 			args:          []string{"/tmp"},
-			expectedFlags: util.Flags{ShowAll: false, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: false, Reverse: false, Recursive: false},
 			expectedPaths: []string{"/tmp"},
 		},
 		{
 			name:          "-a flag with path",
 			args:          []string{"-a", "/tmp"},
-			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false, Reverse: false, Recursive: false},
 			expectedPaths: []string{"/tmp"},
 		},
 		{
 			name:          "path with -a flag",
 			args:          []string{"/tmp", "-a"},
-			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false, Reverse: false, Recursive: false},
 			expectedPaths: []string{"/tmp"},
 		},
 		{
 			name:          "multiple paths with -a flag",
 			args:          []string{"-a", "/tmp", "/home"},
-			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false, Reverse: false, Recursive: false},
 			expectedPaths: []string{"/tmp", "/home"},
 		},
 		{
 			name:          "multiple flags including -a",
 			args:          []string{"-al"},
-			expectedFlags: util.Flags{ShowAll: true, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true, Reverse: false, Recursive: false},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "multiple flags with -a and paths",
 			args:          []string{"-al", "/tmp", "/home"},
-			expectedFlags: util.Flags{ShowAll: true, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true, Reverse: false, Recursive: false},
 			expectedPaths: []string{"/tmp", "/home"},
 		},
 		{
 			name:          "flags without -a",
 			args:          []string{"-l"},
-			expectedFlags: util.Flags{ShowAll: false, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: true, Reverse: false, Recursive: false},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "mixed flags and paths",
 			args:          []string{"/tmp", "-a", "/home", "-l"},
-			expectedFlags: util.Flags{ShowAll: true, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true, Reverse: false, Recursive: false},
 			expectedPaths: []string{"/tmp", "/home"},
+		},
+		{
+			name:          "only -R flag",
+			args:          []string{"-R"},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: false, Reverse: false, Recursive: true},
+			expectedPaths: []string{"."},
+		},
+		{
+			name:          "-R flag with path",
+			args:          []string{"-R", "/tmp"},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: false, Reverse: false, Recursive: true},
+			expectedPaths: []string{"/tmp"},
+		},
+		{
+			name:          "combined flags with -R",
+			args:          []string{"-alR"},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true, Reverse: false, Recursive: true},
+			expectedPaths: []string{"."},
+		},
+		{
+			name:          "all flags combined",
+			args:          []string{"-alrR"},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true, Reverse: true, Recursive: true},
+			expectedPaths: []string{"."},
 		},
 	}
 
@@ -94,7 +118,7 @@ func TestParseArgs(t *testing.T) {
 func TestParseArgs_EdgeCases(t *testing.T) {
 	t.Run("empty flag", func(t *testing.T) {
 		flags, paths := parseArgs([]string{"-"})
-		expectedFlags := util.Flags{ShowAll: false, Longformat: false}
+		expectedFlags := util.Flags{ShowAll: false, Longformat: false, Reverse: false, Recursive: false}
 		expectedPaths := []string{"."}
 
 		if !reflect.DeepEqual(flags, expectedFlags) {
@@ -108,7 +132,7 @@ func TestParseArgs_EdgeCases(t *testing.T) {
 
 	t.Run("unknown flag", func(t *testing.T) {
 		flags, paths := parseArgs([]string{"-x"})
-		expectedFlags := util.Flags{ShowAll: false, Longformat: false}
+		expectedFlags := util.Flags{ShowAll: false, Longformat: false, Reverse: false, Recursive: false}
 		expectedPaths := []string{"."}
 
 		if !reflect.DeepEqual(flags, expectedFlags) {
