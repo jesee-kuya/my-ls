@@ -51,7 +51,7 @@ func TestReadDirNames(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				got, err := ReadDirNames(tt.input, false)
+				got, err := ReadDirNames(tt.input, Flags{ShowAll: false})
 
 				if tt.expectErr != nil {
 					if err == nil {
