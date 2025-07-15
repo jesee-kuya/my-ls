@@ -4,74 +4,74 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/jesee-kuya/my-ls/print"
+	"github.com/jesee-kuya/my-ls/util"
 )
 
 func TestParseArgs(t *testing.T) {
 	tests := []struct {
 		name          string
 		args          []string
-		expectedFlags print.Flags
+		expectedFlags util.Flags
 		expectedPaths []string
 	}{
 		{
 			name:          "no arguments",
 			args:          []string{},
-			expectedFlags: print.Flags{ShowAll: false, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: false},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "only -a flag",
 			args:          []string{"-a"},
-			expectedFlags: print.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "only path",
 			args:          []string{"/tmp"},
-			expectedFlags: print.Flags{ShowAll: false, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: false},
 			expectedPaths: []string{"/tmp"},
 		},
 		{
 			name:          "-a flag with path",
 			args:          []string{"-a", "/tmp"},
-			expectedFlags: print.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
 			expectedPaths: []string{"/tmp"},
 		},
 		{
 			name:          "path with -a flag",
 			args:          []string{"/tmp", "-a"},
-			expectedFlags: print.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
 			expectedPaths: []string{"/tmp"},
 		},
 		{
 			name:          "multiple paths with -a flag",
 			args:          []string{"-a", "/tmp", "/home"},
-			expectedFlags: print.Flags{ShowAll: true, Longformat: false},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: false},
 			expectedPaths: []string{"/tmp", "/home"},
 		},
 		{
 			name:          "multiple flags including -a",
 			args:          []string{"-al"},
-			expectedFlags: print.Flags{ShowAll: true, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "multiple flags with -a and paths",
 			args:          []string{"-al", "/tmp", "/home"},
-			expectedFlags: print.Flags{ShowAll: true, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true},
 			expectedPaths: []string{"/tmp", "/home"},
 		},
 		{
 			name:          "flags without -a",
 			args:          []string{"-l"},
-			expectedFlags: print.Flags{ShowAll: false, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: false, Longformat: true},
 			expectedPaths: []string{"."},
 		},
 		{
 			name:          "mixed flags and paths",
 			args:          []string{"/tmp", "-a", "/home", "-l"},
-			expectedFlags: print.Flags{ShowAll: true, Longformat: true},
+			expectedFlags: util.Flags{ShowAll: true, Longformat: true},
 			expectedPaths: []string{"/tmp", "/home"},
 		},
 	}
@@ -94,7 +94,7 @@ func TestParseArgs(t *testing.T) {
 func TestParseArgs_EdgeCases(t *testing.T) {
 	t.Run("empty flag", func(t *testing.T) {
 		flags, paths := parseArgs([]string{"-"})
-		expectedFlags := print.Flags{ShowAll: false, Longformat: false}
+		expectedFlags := util.Flags{ShowAll: false, Longformat: false}
 		expectedPaths := []string{"."}
 
 		if !reflect.DeepEqual(flags, expectedFlags) {
@@ -108,7 +108,7 @@ func TestParseArgs_EdgeCases(t *testing.T) {
 
 	t.Run("unknown flag", func(t *testing.T) {
 		flags, paths := parseArgs([]string{"-x"})
-		expectedFlags := print.Flags{ShowAll: false, Longformat: false}
+		expectedFlags := util.Flags{ShowAll: false, Longformat: false}
 		expectedPaths := []string{"."}
 
 		if !reflect.DeepEqual(flags, expectedFlags) {
@@ -122,7 +122,7 @@ func TestParseArgs_EdgeCases(t *testing.T) {
 
 	t.Run("multiple -a flags", func(t *testing.T) {
 		flags, paths := parseArgs([]string{"-a", "-a"})
-		expectedFlags := print.Flags{ShowAll: true, Longformat: false}
+		expectedFlags := util.Flags{ShowAll: true, Longformat: false}
 		expectedPaths := []string{"."}
 
 		if !reflect.DeepEqual(flags, expectedFlags) {
