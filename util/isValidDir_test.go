@@ -2,15 +2,26 @@ package util
 
 import (
 	"os"
-	"path/filepath"
+	"strings"
 	"testing"
 )
+
+// testJoinPath4 joins directory and file name with proper separator (test helper)
+func testJoinPath4(dir, file string) string {
+	if dir == "" {
+		return file
+	}
+	if strings.HasSuffix(dir, "/") {
+		return dir + file
+	}
+	return dir + "/" + file
+}
 
 func TestIsValidDir(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create a temp file (not a directory)
-	tempFile := filepath.Join(tempDir, "file.txt")
+	tempFile := testJoinPath4(tempDir, "file.txt")
 	err := os.WriteFile(tempFile, []byte("test"), 0o644)
 	if err != nil {
 		t.Fatalf("setup failed: %v", err)
@@ -30,7 +41,7 @@ func TestIsValidDir(t *testing.T) {
 		},
 		{
 			name:    "Non-existent path",
-			input:   filepath.Join(tempDir, "nope"),
+			input:   testJoinPath4(tempDir, "nope"),
 			wantErr: true,
 		},
 		{

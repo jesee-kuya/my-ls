@@ -3,25 +3,36 @@ package util
 import (
 	"errors"
 	"os"
-	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 )
+
+// testJoinPath2 joins directory and file name with proper separator (test helper)
+func testJoinPath2(dir, file string) string {
+	if dir == "" {
+		return file
+	}
+	if strings.HasSuffix(dir, "/") {
+		return dir + file
+	}
+	return dir + "/" + file
+}
 
 func TestReadDirNames(t *testing.T) {
 	t.Run("Table-driven ReadDirNames tests", func(t *testing.T) {
 		base := t.TempDir()
 
-		dirWithFiles := filepath.Join(base, "with_files")
+		dirWithFiles := testJoinPath2(base, "with_files")
 		os.Mkdir(dirWithFiles, 0o755)
-		os.WriteFile(filepath.Join(dirWithFiles, "a.txt"), []byte("a"), 0o644)
-		os.WriteFile(filepath.Join(dirWithFiles, "b.txt"), []byte("b"), 0o644)
+		os.WriteFile(testJoinPath2(dirWithFiles, "a.txt"), []byte("a"), 0o644)
+		os.WriteFile(testJoinPath2(dirWithFiles, "b.txt"), []byte("b"), 0o644)
 
-		emptyDir := filepath.Join(base, "empty")
+		emptyDir := testJoinPath2(base, "empty")
 		os.Mkdir(emptyDir, 0o755)
 
-		missingDir := filepath.Join(base, "missing")
+		missingDir := testJoinPath2(base, "missing")
 
 		tests := []struct {
 			name      string
