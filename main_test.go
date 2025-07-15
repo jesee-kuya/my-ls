@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -338,6 +340,93 @@ func TestParseArgs_MixedFormats(t *testing.T) {
 
 			if !reflect.DeepEqual(paths, tc.expectedPaths) {
 				t.Errorf("parseArgs(%v) paths = %v, want %v", tc.args, paths, tc.expectedPaths)
+			}
+		})
+	}
+}
+
+// TestFlagFormatEquivalence tests that combined and separate flag formats produce identical output
+func TestFlagFormatEquivalence(t *testing.T) {
+	// Create a temporary directory with test files for consistent testing
+	tempDir := t.TempDir()
+
+	// Create test files
+	testFiles := []string{"file1.txt", "file2.txt", ".hidden", "dir1"}
+	for _, file := range testFiles[:3] {
+		err := os.WriteFile(filepath.Join(tempDir, file), []byte("test content"), 0644)
+		if err != nil {
+			t.Fatalf("Failed to create test file %s: %v", file, err)
+		}
+	}
+
+	// Create test directory
+	err := os.Mkdir(filepath.Join(tempDir, "dir1"), 0755)
+	if err != nil {
+		t.Fatalf("Failed to create test directory: %v", err)
+	}
+
+	testCases := []struct {
+		name     string
+		combined []string
+		separate []string
+	}{
+		{
+			name:     "la flags",
+			combined: []string{"-la", tempDir},
+			separate: []string{"-l", "-a", tempDir},
+		},
+		{
+			name:     "lar flags",
+			combined: []string{"-lar", tempDir},
+			separate: []string{"-l", "-a", "-r", tempDir},
+		},
+		{
+			name:     "lat flags",
+			combined: []string{"-lat", tempDir},
+			separate: []string{"-l", "-a", "-t", tempDir},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Parse arguments for both formats
+			combinedFlags, combinedPaths := parseArgs(tc.combined)
+			separateFlags, separatePaths := parseArgs(tc.separate)
+
+			// Verify flags are identical
+			if !reflect.DeepEqual(combinedFlags, separateFlags) {
+				t.Errorf("Flags differ: combined=%v, separate=%v", combinedFlags, separateFlags)
+			}
+
+			// Verify paths are identical
+			if !reflect.DeepEqual(combinedPaths, separatePaths) {
+				t.Errorf("Paths differ: combined=%v, separate=%v", combinedPaths, separatePaths)
+			}
+
+			// Test that the actual output would be identical by calling the same functions
+			// This ensures the entire pipeline works consistently
+			if combinedFlags.Longformat {
+				combinedOutput, err1 := util.ReadDirNamesLong(tempDir, combinedFlags)
+				separateOutput, err2 := util.ReadDirNamesLong(tempDir, separateFlags)
+
+				if err1 != err2 {
+					t.Errorf("Errors differ: combined=%v, separate=%v", err1, err2)
+				}
+
+				if err1 == nil && !reflect.DeepEqual(combinedOutput, separateOutput) {
+					t.Errorf("Long format outputs differ")
+				}
+			} else {
+				combinedOutput, err1 := util.ReadDirNames(tempDir, combinedFlags)
+				separateOutput, err2 := util.ReadDirNames(tempDir, separateFlags)
+
+				if err1 != err2 {
+					t.Errorf("Errors differ: combined=%v, separate=%v", err1, err2)
+				}
+
+				if err1 == nil && !reflect.DeepEqual(combinedOutput, separateOutput) {
+					t.Errorf("Short format outputs differ")
+				}
 			}
 		})
 	}
