@@ -6,13 +6,7 @@ import (
 	"github.com/jesee-kuya/my-ls/util"
 )
 
-// Flags represents command-line flags for my-ls
-type Flags struct {
-	ShowAll    bool
-	Longformat bool
-}
-
-func Print(paths []string, flags Flags) {
+func Print(paths []string, flags util.Flags) {
 	outErrors := []string{}
 	singleFiles := []string{}
 	dirContents := []string{}
@@ -36,13 +30,13 @@ func Print(paths []string, flags Flags) {
 		var files []string
 
 		if flags.Longformat {
-			files, err = util.ReadDirNamesLong(dirPath, flags.ShowAll)
+			files, err = util.ReadDirNamesLong(dirPath, flags)
 			if err != nil {
 				outErrors = append(outErrors, fmt.Sprintf("Error reading directory: %v\n", err.Error()))
 				continue
 			}
 		} else {
-			files, err = util.ReadDirNames(dirPath, flags.ShowAll)
+			files, err = util.ReadDirNames(dirPath, flags)
 			if err != nil {
 				outErrors = append(outErrors, fmt.Sprintf("Error reading directory: %v\n", err.Error()))
 				continue
