@@ -165,8 +165,8 @@ func TestReadDirNames_AFlag(t *testing.T) {
 
 		// Check if all files are sorted
 		for i := 1; i < len(names); i++ {
-			prev := StripANSI(names[i-1])
-			curr := StripANSI(names[i])
+			prev := strings.ToLower(TrimStart(StripANSI(names[i-1])))
+			curr := strings.ToLower(TrimStart(StripANSI(names[i])))
 			if prev > curr {
 				t.Errorf("Files not sorted correctly: %s should come before %s", curr, prev)
 			}
