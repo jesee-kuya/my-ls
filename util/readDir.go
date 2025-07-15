@@ -13,6 +13,7 @@ type Flags struct {
 	ShowAll    bool
 	Longformat bool
 	Reverse    bool
+	Recursive  bool
 }
 
 type fileDisplayInfo struct {
