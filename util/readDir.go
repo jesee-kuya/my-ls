@@ -200,6 +200,27 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 		})
 	}
 
+	// Sort displayInfos by time if TimeSort is enabled
+	if flag.TimeSort {
+		// Sort by modification time (newest first)
+		for i := 0; i < len(displayInfos)-1; i++ {
+			for j := i + 1; j < len(displayInfos); j++ {
+				// Skip . and .. entries - they should stay at the beginning
+				if displayInfos[i].Name() == "." || displayInfos[i].Name() == ".." {
+					continue
+				}
+				if displayInfos[j].Name() == "." || displayInfos[j].Name() == ".." {
+					continue
+				}
+
+				// Compare modification times (newer first)
+				if displayInfos[j].ModTime().After(displayInfos[i].ModTime()) {
+					displayInfos[i], displayInfos[j] = displayInfos[j], displayInfos[i]
+				}
+			}
+		}
+	}
+
 	if flag.Reverse {
 		for i, j := 0, len(displayInfos)-1; i < j; i, j = i+1, j-1 {
 			displayInfos[i], displayInfos[j] = displayInfos[j], displayInfos[i]
@@ -223,7 +244,9 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 			fileName,
 		)
 		if flag.TimeSort {
-			lines = InsertSortedLongByTime(line, dirPath, lines)
+			// When using time sort, we've already sorted the displayInfos array
+			// so we just append in order
+			lines = append(lines, line)
 		} else {
 			lines = InsertSortedLong(line, lines)
 		}
