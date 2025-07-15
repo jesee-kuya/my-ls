@@ -126,13 +126,12 @@ func ReadDirNamesLong(dirPath string, showAll bool) ([]string, error) {
 		totalBlocks += int64(stat.Blocks)
 	}
 
-	// Total line based on 512-byte blocks
-	lines = append(lines, fmt.Sprintf("total %d", totalBlocks/2))
-
 	for _, entry := range filesToShow {
 		line := formatLongEntry(entry.Name(), dirPath)
-		lines = append(lines, line)
+		lines = InsertSortedLong(line, lines)
 	}
+
+	lines = append([]string{fmt.Sprintf("total %d", totalBlocks/2)}, lines...)
 
 	return lines, nil
 }
