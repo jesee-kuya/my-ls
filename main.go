@@ -23,6 +23,8 @@ func parseArgs(args []string) (util.Flags, []string) {
 					flags.Longformat = true
 				case 'r':
 					flags.Reverse = true
+				case 'R':
+					flags.Recursive = true
 				}
 			}
 		} else {
