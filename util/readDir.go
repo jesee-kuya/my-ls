@@ -106,7 +106,11 @@ func ReadDirNames(dirPath string, flag Flags) ([]string, error) {
 			colour = archiveColour
 		}
 
-		names = InsertSorted(name, colour, reset, names)
+		if flag.TimeSort {
+			names = InsertSortedByTime(name, colour, reset, dirPath, names)
+		} else {
+			names = InsertSorted(name, colour, reset, names)
+		}
 	}
 
 	if flag.Reverse {
@@ -218,7 +222,11 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 			di.modTime,
 			fileName,
 		)
-		lines = InsertSortedLong(line, lines)
+		if flag.TimeSort {
+			lines = InsertSortedLongByTime(line, dirPath, lines)
+		} else {
+			lines = InsertSortedLong(line, lines)
+		}
 	}
 	lines = append([]string{fmt.Sprintf("total %d", totalBlocks/2)}, lines...)
 
