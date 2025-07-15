@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-
 )
 
 type Flags struct {
 	ShowAll    bool
 	Longformat bool
+	Reverse    bool
 }
 
 const (
