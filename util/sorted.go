@@ -20,6 +20,17 @@ func InsertSorted(name, colour, reset string, names []string) []string {
 	return append(names, colored)
 }
 
+func InsertSortedLong(line string, lines []string) []string {
+	for i, val := range lines {
+		if (strings.ToLower(TrimStart(StripANSI(StripLong(line)))) < strings.ToLower(TrimStart(StripANSI(StripLong(val))))) || (strings.ToLower(TrimStart(StripANSI(StripLong(line)))) == strings.ToLower(TrimStart(StripANSI(StripLong(val))))) {
+			return append(lines[:i], append([]string{line}, lines[i:]...)...)
+		}
+	}
+
+	return append(lines, line)
+}
+
+
 func TrimStart(name string) string {
 	return strings.TrimLeft(name, ".")
 }
