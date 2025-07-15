@@ -25,6 +25,8 @@ func parseArgs(args []string) (util.Flags, []string) {
 					flags.Reverse = true
 				case 'R':
 					flags.Recursive = true
+				case 't':
+					flags.TimeSort = true
 				}
 			}
 		} else {
