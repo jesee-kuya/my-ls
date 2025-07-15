@@ -260,3 +260,86 @@ func getStat(path string) syscall.Stat_t {
 	}
 	return stat
 }
+
+// CollectDirectoriesRecursively traverses directories recursively and returns all directory paths
+func CollectDirectoriesRecursively(rootPaths []string, flags Flags) ([]string, error) {
+	var allDirs []string
+	visited := make(map[string]bool)
+
+	for _, rootPath := range rootPaths {
+		info, err := IsValidDir(rootPath)
+		if err != nil {
+			return nil, err
+		}
+
+		if !info.IsDir() {
+			// If it's a file, just add it to the list
+			allDirs = append(allDirs, rootPath)
+			continue
+		}
+
+		// Add the root directory first
+		allDirs = append(allDirs, rootPath)
+
+		// Recursively collect subdirectories
+		err = collectSubdirectories(rootPath, flags, &allDirs, visited)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return allDirs, nil
+}
+
+// collectSubdirectories is a helper function that recursively collects subdirectories
+func collectSubdirectories(dirPath string, flags Flags, allDirs *[]string, visited map[string]bool) error {
+	// Prevent infinite loops with symlinks
+	absPath, err := filepath.Abs(dirPath)
+	if err != nil {
+		return err
+	}
+
+	if visited[absPath] {
+		return nil
+	}
+	visited[absPath] = true
+
+	dir, err := os.Open(dirPath)
+	if err != nil {
+		return err
+	}
+	defer dir.Close()
+
+	entries, err := dir.Readdir(-1)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		name := entry.Name()
+
+		// Skip hidden files unless showAll is true
+		if !flags.ShowAll && strings.HasPrefix(name, ".") {
+			continue
+		}
+
+		// Skip . and .. entries
+		if name == "." || name == ".." {
+			continue
+		}
+
+		if entry.IsDir() {
+			subDirPath := filepath.Join(dirPath, name)
+			*allDirs = append(*allDirs, subDirPath)
+
+			// Recursively process subdirectory
+			err = collectSubdirectories(subDirPath, flags, allDirs, visited)
+			if err != nil {
+				// Continue processing other directories even if one fails
+				continue
+			}
+		}
+	}
+
+	return nil
+}
