@@ -57,12 +57,12 @@ func formatInColumns(files []string) string {
 	for numCols := 1; numCols <= len(files); numCols++ {
 		numRows := (len(files) + numCols - 1) / numCols
 
-		// Calculate column widths for this layout
+		// Calculate column widths for this layout (column-major ordering)
 		colWidths := make([]int, numCols)
 		for col := 0; col < numCols; col++ {
 			maxColWidth := 0
 			for row := 0; row < numRows; row++ {
-				idx := row*numCols + col
+				idx := col*numRows + row // Column-major indexing
 				if idx < len(files) {
 					if fileLengths[idx] > maxColWidth {
 						maxColWidth = fileLengths[idx]
@@ -91,12 +91,12 @@ func formatInColumns(files []string) string {
 	// Format using the best layout
 	numRows := (len(files) + bestCols - 1) / bestCols
 
-	// Calculate column widths for the best layout
+	// Calculate column widths for the best layout (column-major ordering)
 	colWidths := make([]int, bestCols)
 	for col := 0; col < bestCols; col++ {
 		maxColWidth := 0
 		for row := 0; row < numRows; row++ {
-			idx := row*bestCols + col
+			idx := col*numRows + row // Column-major indexing
 			if idx < len(files) {
 				if fileLengths[idx] > maxColWidth {
 					maxColWidth = fileLengths[idx]
@@ -109,7 +109,7 @@ func formatInColumns(files []string) string {
 	var result strings.Builder
 	for row := 0; row < numRows; row++ {
 		for col := 0; col < bestCols; col++ {
-			idx := row*bestCols + col
+			idx := col*numRows + row // Column-major indexing
 			if idx < len(files) {
 				result.WriteString(files[idx])
 
