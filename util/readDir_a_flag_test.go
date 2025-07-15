@@ -2,10 +2,20 @@ package util
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 )
+
+// testJoinPath joins directory and file name with proper separator (test helper)
+func testJoinPath(dir, file string) string {
+	if dir == "" {
+		return file
+	}
+	if strings.HasSuffix(dir, "/") {
+		return dir + file
+	}
+	return dir + "/" + file
+}
 
 func TestReadDirNames_AFlag(t *testing.T) {
 	// Create a temporary directory for testing
@@ -14,7 +24,7 @@ func TestReadDirNames_AFlag(t *testing.T) {
 	// Create some regular files
 	regularFiles := []string{"file1.txt", "file2.txt", "README.md"}
 	for _, file := range regularFiles {
-		err := os.WriteFile(filepath.Join(tempDir, file), []byte("content"), 0644)
+		err := os.WriteFile(testJoinPath(tempDir, file), []byte("content"), 0644)
 		if err != nil {
 			t.Fatalf("Failed to create test file %s: %v", file, err)
 		}
@@ -23,14 +33,14 @@ func TestReadDirNames_AFlag(t *testing.T) {
 	// Create some hidden files
 	hiddenFiles := []string{".hidden1", ".hidden2", ".gitignore"}
 	for _, file := range hiddenFiles {
-		err := os.WriteFile(filepath.Join(tempDir, file), []byte("content"), 0644)
+		err := os.WriteFile(testJoinPath(tempDir, file), []byte("content"), 0644)
 		if err != nil {
 			t.Fatalf("Failed to create hidden file %s: %v", file, err)
 		}
 	}
 
 	// Create a hidden directory
-	hiddenDir := filepath.Join(tempDir, ".hidden_dir")
+	hiddenDir := testJoinPath(tempDir, ".hidden_dir")
 	err := os.Mkdir(hiddenDir, 0755)
 	if err != nil {
 		t.Fatalf("Failed to create hidden directory: %v", err)
