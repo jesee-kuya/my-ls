@@ -17,7 +17,7 @@ type Flags struct {
 
 type fileDisplayInfo struct {
 	os.FileInfo
-	
+
 	mode    string
 	links   string
 	user    string
@@ -130,7 +130,7 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 	var displayInfos []fileDisplayInfo
 	var widths maxWidths
 	var totalBlocks int64
-	
+
 	// Combine initial filtering and data gathering into a single list
 	filesToProcess := []os.FileInfo{}
 	if flag.ShowAll {
@@ -148,9 +148,6 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 		filesToProcess = append(filesToProcess, entry)
 	}
 
-	//
-	// --- PASS 1: GATHER INFO AND CALCULATE MAX WIDTHS ---
-	//
 	for _, info := range filesToProcess {
 		fullPath := filepath.Join(dirPath, info.Name())
 		stat := getStat(fullPath)
@@ -167,11 +164,11 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 		if g, err := user.LookupGroupId(gid); err == nil {
 			group = g.Name
 		}
-		
+
 		// Convert numeric fields to strings for length calculation
 		linksStr := fmt.Sprint(stat.Nlink)
 		sizeStr := fmt.Sprint(info.Size())
-		
+
 		// Update max widths
 		if len(linksStr) > widths.links {
 			widths.links = len(linksStr)
@@ -185,7 +182,7 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 		if len(sizeStr) > widths.size {
 			widths.size = len(sizeStr)
 		}
-		
+
 		// Store the processed info
 		displayInfos = append(displayInfos, fileDisplayInfo{
 			FileInfo: info,
@@ -197,17 +194,15 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 			modTime:  info.ModTime().Format("Jan _2 15:04"),
 		})
 	}
-	
+
 	if flag.Reverse {
 		for i, j := 0, len(displayInfos)-1; i < j; i, j = i+1, j-1 {
 			displayInfos[i], displayInfos[j] = displayInfos[j], displayInfos[i]
 		}
 	}
-	
+
 	var lines []string
 
-	// --- PASS 2: FORMAT AND PRINT ALL LINES ---
-	//
 	for _, di := range displayInfos {
 		color := getFileColor(di.Mode(), di.Name())
 		fileName := fmt.Sprintf("%s%s%s", color, di.Name(), reset)
@@ -229,10 +224,8 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 	return lines, nil
 }
 
-
 // getFileColor remains the same as it's a perfect helper function
 func getFileColor(mode os.FileMode, name string) string {
-    // ... (your existing function code is perfect here)
 	switch {
 	case mode.IsDir():
 		return dirColour
@@ -258,11 +251,9 @@ func getFileColor(mode os.FileMode, name string) string {
 	}
 }
 
-
 // getStat also remains the same
 func getStat(path string) syscall.Stat_t {
 	var stat syscall.Stat_t
-	// Using Lstat to not follow symlinks for stat info, which is typical for `ls -l`
 	if err := syscall.Lstat(path, &stat); err != nil {
 		_ = syscall.Stat(path, &stat)
 	}
