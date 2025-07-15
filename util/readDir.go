@@ -13,6 +13,7 @@ type Flags struct {
 	Longformat bool
 	Reverse    bool
 	Recursive  bool
+	TimeSort   bool
 }
 
 type fileDisplayInfo struct {
