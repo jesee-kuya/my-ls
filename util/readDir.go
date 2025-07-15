@@ -90,6 +90,10 @@ func ReadDirNames(dirPath string, flag Flags) ([]string, error) {
 		names = InsertSorted(name, colour, reset, names)
 	}
 
+	if flag.Reverse {
+		Reverse(names)
+	}
+
 	return names, nil
 }
 
@@ -135,6 +139,10 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 	for _, entry := range filesToShow {
 		line := formatLongEntry(entry.Name(), dirPath)
 		lines = InsertSortedLong(line, lines)
+	}
+
+	if flag.Reverse {
+		Reverse(lines)
 	}
 
 	lines = append([]string{fmt.Sprintf("total %d", totalBlocks/2)}, lines...)
