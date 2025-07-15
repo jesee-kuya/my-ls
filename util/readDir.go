@@ -15,6 +15,24 @@ type Flags struct {
 	Reverse    bool
 }
 
+type fileDisplayInfo struct {
+	os.FileInfo
+	
+	mode    string
+	links   string
+	user    string
+	group   string
+	size    string
+	modTime string
+}
+
+type maxWidths struct {
+	links int
+	user  int
+	group int
+	size  int
+}
+
 const (
 	reset = "\033[0m"
 
@@ -109,96 +127,112 @@ func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 		return nil, err
 	}
 
-	var lines []string
+	var displayInfos []fileDisplayInfo
+	var widths maxWidths
 	var totalBlocks int64
-	filesToShow := []os.FileInfo{}
-
-	// Optionally include . and ..
+	
+	// Combine initial filtering and data gathering into a single list
+	filesToProcess := []os.FileInfo{}
 	if flag.ShowAll {
 		for _, special := range []string{".", ".."} {
-			fullPath := filepath.Join(dirPath, special)
-			info, err := os.Lstat(fullPath)
+			info, err := os.Lstat(filepath.Join(dirPath, special))
 			if err == nil {
-				filesToShow = append(filesToShow, info)
-				stat := getStat(fullPath)
-				totalBlocks += int64(stat.Blocks)
+				filesToProcess = append(filesToProcess, info)
 			}
 		}
 	}
-
 	for _, entry := range entries {
-		name := entry.Name()
-		if !flag.ShowAll && strings.HasPrefix(name, ".") {
+		if !flag.ShowAll && strings.HasPrefix(entry.Name(), ".") {
 			continue
 		}
-		filesToShow = append(filesToShow, entry)
-		stat := getStat(filepath.Join(dirPath, name))
-		totalBlocks += int64(stat.Blocks)
+		filesToProcess = append(filesToProcess, entry)
 	}
 
-	for _, entry := range filesToShow {
-		line := formatLongEntry(entry.Name(), dirPath)
+	//
+	// --- PASS 1: GATHER INFO AND CALCULATE MAX WIDTHS ---
+	//
+	for _, info := range filesToProcess {
+		fullPath := filepath.Join(dirPath, info.Name())
+		stat := getStat(fullPath)
+		totalBlocks += int64(stat.Blocks)
+
+		// Owner and group
+		uid := fmt.Sprint(stat.Uid)
+		owner := uid
+		if u, err := user.LookupId(uid); err == nil {
+			owner = u.Username
+		}
+		gid := fmt.Sprint(stat.Gid)
+		group := gid
+		if g, err := user.LookupGroupId(gid); err == nil {
+			group = g.Name
+		}
+		
+		// Convert numeric fields to strings for length calculation
+		linksStr := fmt.Sprint(stat.Nlink)
+		sizeStr := fmt.Sprint(info.Size())
+		
+		// Update max widths
+		if len(linksStr) > widths.links {
+			widths.links = len(linksStr)
+		}
+		if len(owner) > widths.user {
+			widths.user = len(owner)
+		}
+		if len(group) > widths.group {
+			widths.group = len(group)
+		}
+		if len(sizeStr) > widths.size {
+			widths.size = len(sizeStr)
+		}
+		
+		// Store the processed info
+		displayInfos = append(displayInfos, fileDisplayInfo{
+			FileInfo: info,
+			mode:     info.Mode().String(),
+			links:    linksStr,
+			user:     owner,
+			group:    group,
+			size:     sizeStr,
+			modTime:  info.ModTime().Format("Jan _2 15:04"),
+		})
+	}
+	
+	if flag.Reverse {
+		for i, j := 0, len(displayInfos)-1; i < j; i, j = i+1, j-1 {
+			displayInfos[i], displayInfos[j] = displayInfos[j], displayInfos[i]
+		}
+	}
+	
+	var lines []string
+
+	// --- PASS 2: FORMAT AND PRINT ALL LINES ---
+	//
+	for _, di := range displayInfos {
+		color := getFileColor(di.Mode(), di.Name())
+		fileName := fmt.Sprintf("%s%s%s", color, di.Name(), reset)
+
+		// Use the calculated max widths to format the line perfectly
+		line := fmt.Sprintf("%-10s %*s %-*s %-*s %*s %s %s",
+			di.mode,
+			widths.links, di.links,
+			widths.user, di.user,
+			widths.group, di.group,
+			widths.size, di.size,
+			di.modTime,
+			fileName,
+		)
 		lines = InsertSortedLong(line, lines)
 	}
-
-	if flag.Reverse {
-		Reverse(lines)
-	}
-
 	lines = append([]string{fmt.Sprintf("total %d", totalBlocks/2)}, lines...)
 
 	return lines, nil
 }
 
-// formatLongEntry builds an ls -l style line for a file
-func formatLongEntry(name, dirPath string) string {
-	fullPath := filepath.Join(dirPath, name)
 
-	info, err := os.Lstat(fullPath)
-	if err != nil {
-		return fmt.Sprintf("Error reading %s: %v", name, err)
-	}
-
-	var stat syscall.Stat_t
-	if err := syscall.Stat(fullPath, &stat); err != nil {
-		return fmt.Sprintf("Error stat %s: %v", name, err)
-	}
-
-	// Permissions
-	mode := info.Mode().String()
-
-	// Link count
-	links := stat.Nlink
-
-	// Owner and group
-	uid := fmt.Sprint(stat.Uid)
-	gid := fmt.Sprint(stat.Gid)
-
-	owner := uid
-	if u, err := user.LookupId(uid); err == nil {
-		owner = u.Username
-	}
-	group := gid
-	if g, err := user.LookupGroupId(gid); err == nil {
-		group = g.Name
-	}
-
-	// Size
-	size := info.Size()
-
-	// Time
-	modTime := info.ModTime().Format("Jan _2 15:04")
-
-	// Color
-	color := getFileColor(info.Mode(), name)
-
-	// Format full line
-	return fmt.Sprintf("%s %2d %-8s %-8s %6d %s %s%s%s",
-		mode, links, owner, group, size, modTime, color, name, reset)
-}
-
-// getFileColor returns the ANSI color based on file mode or suffix
+// getFileColor remains the same as it's a perfect helper function
 func getFileColor(mode os.FileMode, name string) string {
+    // ... (your existing function code is perfect here)
 	switch {
 	case mode.IsDir():
 		return dirColour
@@ -224,8 +258,13 @@ func getFileColor(mode os.FileMode, name string) string {
 	}
 }
 
+
+// getStat also remains the same
 func getStat(path string) syscall.Stat_t {
 	var stat syscall.Stat_t
-	_ = syscall.Stat(path, &stat)
+	// Using Lstat to not follow symlinks for stat info, which is typical for `ls -l`
+	if err := syscall.Lstat(path, &stat); err != nil {
+		_ = syscall.Stat(path, &stat)
+	}
 	return stat
 }
