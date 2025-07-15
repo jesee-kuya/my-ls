@@ -37,7 +37,7 @@ func TestReadDirNames_AFlag(t *testing.T) {
 	}
 
 	t.Run("showAll=false should not show hidden files", func(t *testing.T) {
-		names, err := ReadDirNames(tempDir, false)
+		names, err := ReadDirNames(tempDir, Flags{ShowAll: false})
 		if err != nil {
 			t.Fatalf("ReadDirNames failed: %v", err)
 		}
@@ -73,7 +73,7 @@ func TestReadDirNames_AFlag(t *testing.T) {
 	})
 
 	t.Run("showAll=true should show all files including hidden ones", func(t *testing.T) {
-		names, err := ReadDirNames(tempDir, true)
+		names, err := ReadDirNames(tempDir, Flags{ShowAll: true})
 		if err != nil {
 			t.Fatalf("ReadDirNames failed: %v", err)
 		}
@@ -139,7 +139,7 @@ func TestReadDirNames_AFlag(t *testing.T) {
 	})
 
 	t.Run("files should be sorted correctly with showAll=true", func(t *testing.T) {
-		names, err := ReadDirNames(tempDir, true)
+		names, err := ReadDirNames(tempDir, Flags{ShowAll: true})
 		if err != nil {
 			t.Fatalf("ReadDirNames failed: %v", err)
 		}
@@ -148,8 +148,8 @@ func TestReadDirNames_AFlag(t *testing.T) {
 		if len(names) > 2 {
 			sortedPortion := names[2:]
 			for i := 1; i < len(sortedPortion); i++ {
-				prev := StripANSI(sortedPortion[i-1])
-				curr := StripANSI(sortedPortion[i])
+				prev := strings.ToLower(TrimStart(StripANSI(sortedPortion[i-1])))
+				curr := strings.ToLower(TrimStart(StripANSI(sortedPortion[i])))
 				if prev > curr {
 					t.Errorf("Files not sorted correctly: %s should come before %s (prev: %s, curr: %s)", curr, prev, prev, curr)
 				}
@@ -158,7 +158,7 @@ func TestReadDirNames_AFlag(t *testing.T) {
 	})
 
 	t.Run("files should be sorted correctly with showAll=false", func(t *testing.T) {
-		names, err := ReadDirNames(tempDir, false)
+		names, err := ReadDirNames(tempDir, Flags{ShowAll: false})
 		if err != nil {
 			t.Fatalf("ReadDirNames failed: %v", err)
 		}
