@@ -7,7 +7,13 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
 )
+
+type Flags struct {
+	ShowAll    bool
+	Longformat bool
+}
 
 const (
 	reset = "\033[0m"
@@ -22,7 +28,7 @@ const (
 )
 
 // ReadDirNames returns a list of file and directory names in dirPath
-func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
+func ReadDirNames(dirPath string, flag Flags) ([]string, error) {
 	dir, err := os.Open(dirPath)
 	if err != nil {
 		return nil, err
@@ -37,7 +43,7 @@ func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 	var names []string
 
 	// Add . and .. entries when showAll is true
-	if showAll {
+	if flag.ShowAll {
 		names = append(names, fmt.Sprintf("%s.%s", dirColour, reset))
 		names = append(names, fmt.Sprintf("%s..%s", dirColour, reset))
 	}
@@ -46,7 +52,7 @@ func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 		name := entry.Name()
 
 		// Skip hidden files unless showAll is true
-		if !showAll && strings.HasPrefix(name, ".") {
+		if !flag.ShowAll && strings.HasPrefix(name, ".") {
 			continue
 		}
 
@@ -87,7 +93,7 @@ func ReadDirNames(dirPath string, showAll bool) ([]string, error) {
 	return names, nil
 }
 
-func ReadDirNamesLong(dirPath string, showAll bool) ([]string, error) {
+func ReadDirNamesLong(dirPath string, flag Flags) ([]string, error) {
 	dir, err := os.Open(dirPath)
 	if err != nil {
 		return nil, err
@@ -104,7 +110,7 @@ func ReadDirNamesLong(dirPath string, showAll bool) ([]string, error) {
 	filesToShow := []os.FileInfo{}
 
 	// Optionally include . and ..
-	if showAll {
+	if flag.ShowAll {
 		for _, special := range []string{".", ".."} {
 			fullPath := filepath.Join(dirPath, special)
 			info, err := os.Lstat(fullPath)
@@ -118,7 +124,7 @@ func ReadDirNamesLong(dirPath string, showAll bool) ([]string, error) {
 
 	for _, entry := range entries {
 		name := entry.Name()
-		if !showAll && strings.HasPrefix(name, ".") {
+		if !flag.ShowAll && strings.HasPrefix(name, ".") {
 			continue
 		}
 		filesToShow = append(filesToShow, entry)

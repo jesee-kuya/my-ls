@@ -4,11 +4,12 @@ import (
 	"os"
 
 	"github.com/jesee-kuya/my-ls/print"
+	"github.com/jesee-kuya/my-ls/util"
 )
 
 // parseArgs parses command-line arguments and returns flags and paths
-func parseArgs(args []string) (print.Flags, []string) {
-	flags := print.Flags{}
+func parseArgs(args []string) (util.Flags, []string) {
+	flags := util.Flags{}
 	var paths []string
 
 	for _, arg := range args {
@@ -37,7 +38,7 @@ func parseArgs(args []string) (print.Flags, []string) {
 }
 
 func main() {
-	var flags print.Flags
+	var flags util.Flags
 	var paths []string
 
 	if len(os.Args) > 1 {
