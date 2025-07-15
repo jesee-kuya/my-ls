@@ -21,6 +21,8 @@ func parseArgs(args []string) (util.Flags, []string) {
 					flags.ShowAll = true
 				case 'l':
 					flags.Longformat = true
+				case 'r':
+					flags.Reverse = true
 				}
 			}
 		} else {
