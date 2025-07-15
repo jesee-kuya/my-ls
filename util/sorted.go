@@ -12,7 +12,7 @@ func InsertSorted(name, colour, reset string, names []string) []string {
 	colored := fmt.Sprintf("%s%s%s", colour, name, reset)
 
 	for i, val := range names {
-		if ((strings.ToLower(TrimStart(name)) < strings.ToLower(TrimStart(StripANSI(val))))|| (strings.ToLower(TrimStart(name)) == strings.ToLower(TrimStart(StripANSI(val))))) && (val != "." && val != "..") {
+		if ((strings.ToLower(TrimStart(name)) < strings.ToLower(TrimStart(StripANSI(val)))) || (strings.ToLower(TrimStart(name)) == strings.ToLower(TrimStart(StripANSI(val))))) && (val != "." && val != "..") {
 			return append(names[:i], append([]string{colored}, names[i:]...)...)
 		}
 	}
@@ -29,7 +29,6 @@ func InsertSortedLong(line string, lines []string) []string {
 
 	return append(lines, line)
 }
-
 
 func TrimStart(name string) string {
 	return strings.TrimLeft(name, ".")
