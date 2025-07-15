@@ -11,8 +11,19 @@ func Print(paths []string, flags util.Flags) {
 	singleFiles := []string{}
 	dirContents := []string{}
 	content := []any{}
+
+	// Handle recursive listing
+	if flags.Recursive {
+		allPaths, err := util.CollectDirectoriesRecursively(paths, flags)
+		if err != nil {
+			outErrors = append(outErrors, fmt.Sprintf("Error during recursive traversal: %v\n", err.Error()))
+		} else {
+			paths = allPaths
+		}
+	}
+
 	multipleDirs := false
-	if len(paths) > 1 {
+	if len(paths) > 1 || flags.Recursive {
 		multipleDirs = true
 	}
 
@@ -44,7 +55,7 @@ func Print(paths []string, flags util.Flags) {
 		}
 
 		if multipleDirs {
-			dirContents = append(dirContents, fmt.Sprintf("%v:\n", dirPath))
+			dirContents = append(dirContents, fmt.Sprintf("%v:", dirPath))
 		}
 
 		dirContents = append(dirContents, files...)
