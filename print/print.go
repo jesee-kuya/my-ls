@@ -83,13 +83,26 @@ func Print(paths []string, flags util.Flags) {
 		if i != 0 {
 			fmt.Println()
 		}
-		for i, line := range c.([]string) {
+
+		lines := c.([]string)
+		if len(lines) == 0 {
+			continue
+		}
+
+		// Print directory header (if present)
+		if len(lines) > 0 && len(lines[0]) > 0 && lines[0][len(lines[0])-1] == ':' {
+			fmt.Println(lines[0])
+			lines = lines[1:] // Skip the header for content printing
+		}
+
+		// Print the directory contents
+		for j, line := range lines {
 			if flags.Longformat {
 				fmt.Println(line)
 				continue
 			}
 
-			if i == len(c.([]string))-1 {
+			if j == len(lines)-1 {
 				fmt.Println(line)
 				continue
 			}
@@ -97,7 +110,7 @@ func Print(paths []string, flags util.Flags) {
 				fmt.Print(line + "  ")
 				continue
 			} else {
-				fmt.Print(line)
+				fmt.Print(line + "  ")
 			}
 		}
 	}
