@@ -42,7 +42,7 @@ func TestTimeSortFunctionality(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create test file %s: %v", file.name, err)
 		}
-		
+
 		// Set specific modification times to ensure consistent ordering
 		modTime := baseTime.Add(time.Duration(i) * time.Second)
 		err = os.Chtimes(filePath, modTime, modTime)
@@ -133,7 +133,7 @@ func TestTimeSortFunctionality(t *testing.T) {
 
 		fileLines := lines[1:] // Skip the total line
 		expectedOrder := []string{"newest.txt", "middle.txt", "oldest.txt"}
-		
+
 		if len(fileLines) != len(expectedOrder) {
 			t.Errorf("Expected %d file lines, got %d", len(expectedOrder), len(fileLines))
 		}
@@ -163,7 +163,7 @@ func TestTimeSortFunctionality(t *testing.T) {
 
 		fileLines := lines[1:] // Skip the total line
 		expectedOrder := []string{"oldest.txt", "middle.txt", "newest.txt"}
-		
+
 		if len(fileLines) != len(expectedOrder) {
 			t.Errorf("Expected %d file lines, got %d", len(expectedOrder), len(fileLines))
 		}
@@ -201,7 +201,7 @@ func TestTimeSortFunctionality(t *testing.T) {
 		// The rest should be in time order
 		fileEntries := names[2:]
 		expectedOrder := []string{"newest.txt", "middle.txt", "oldest.txt"}
-		
+
 		if len(fileEntries) != len(expectedOrder) {
 			t.Errorf("Expected %d file entries, got %d", len(expectedOrder), len(fileEntries))
 		}
@@ -224,9 +224,9 @@ func TestInsertSortedByTime(t *testing.T) {
 	// Create test files with known modification times
 	file1 := testJoinPath5(tempDir, "file1.txt")
 	file2 := testJoinPath5(tempDir, "file2.txt")
-	
+
 	baseTime := time.Now()
-	
+
 	// Create file1 (older)
 	err := os.WriteFile(file1, []byte("content1"), 0644)
 	if err != nil {
@@ -249,16 +249,16 @@ func TestInsertSortedByTime(t *testing.T) {
 
 	t.Run("InsertSortedByTime should insert newer files first", func(t *testing.T) {
 		var names []string
-		
+
 		// Insert older file first
 		names = InsertSortedByTime("file1.txt", "", "", tempDir, names)
 		// Insert newer file
 		names = InsertSortedByTime("file2.txt", "", "", tempDir, names)
-		
+
 		if len(names) != 2 {
 			t.Fatalf("Expected 2 files, got %d", len(names))
 		}
-		
+
 		// file2.txt should be first (newer)
 		if names[0] != "file2.txt" {
 			t.Errorf("Expected file2.txt first, got %s", names[0])
