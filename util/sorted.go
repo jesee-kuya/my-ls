@@ -8,63 +8,34 @@ import (
 )
 
 // compareFilenames implements locale-aware filename comparison similar to ls in en_US.UTF-8
-// It prioritizes alphanumeric characters over punctuation, is case-sensitive, and sorts lowercase before uppercase
+// It prioritizes lowercase over uppercase for all letters, deprioritizes punctuation, and is case-sensitive
+// compareFilenames compares two filenames and returns true if a should come before b.
 func compareFilenames(a, b string) bool {
-	// Helper function to strip non-alphanumeric characters for initial comparison
-	stripNonAlphanumeric := func(s string) string {
-		var result strings.Builder
-		for _, r := range s {
-			if unicode.IsLetter(r) || unicode.IsDigit(r) {
-				result.WriteRune(r) // Keep original case
-			}
-		}
-		return result.String()
-	}
+	// Convert strings to runes for proper Unicode handling
+	ra, rb := []rune(a), []rune(b)
 
-	// Helper function to compare runes with lowercase before uppercase
-	compareRunes := func(a, b rune) int {
-		if a == b {
-			return 0
+	// Compare strings character by character
+	for i := 0; i < len(ra) && i < len(rb); i++ {
+		ca, cb := ra[i], rb[i]
+		if ca == cb {
+			continue
 		}
-		// If one is lowercase and the other uppercase, lowercase comes first
-		if unicode.IsLower(a) && unicode.IsUpper(b) {
-			return -1
+		// Get lowercase versions for case-insensitive comparison
+		caLower, cbLower := unicode.ToLower(ca), unicode.ToLower(cb)
+		if caLower != cbLower {
+			// If lowercase versions differ, use them for ordering
+			return caLower < cbLower
 		}
-		if unicode.IsUpper(a) && unicode.IsLower(b) {
-			return 1
+		// If lowercase versions are equal, prioritize lowercase over uppercase
+		if unicode.IsLower(ca) && unicode.IsUpper(cb) {
+			return true
 		}
-		// Otherwise, compare by ASCII value
-		if a < b {
-			return -1
-		}
-		return 1
-	}
-
-	// Strip non-alphanumeric for primary comparison
-	aStripped := stripNonAlphanumeric(a)
-	bStripped := stripNonAlphanumeric(b)
-
-	// Compare stripped versions first (prioritizes alphanumeric content)
-	if aStripped != bStripped {
-		// Compare rune by rune to prioritize lowercase
-		for i := 0; i < len(aStripped) && i < len(bStripped); i++ {
-			if aStripped[i] != bStripped[i] {
-				return compareRunes(rune(aStripped[i]), rune(bStripped[i])) < 0
-			}
-		}
-		// If one is a prefix of the other, shorter comes first
-		return len(aStripped) < len(bStripped)
-	}
-
-	// If stripped versions are equal, fall back to full string comparison
-	// Compare rune by rune to prioritize lowercase
-	for i := 0; i < len(a) && i < len(b); i++ {
-		if a[i] != b[i] {
-			return compareRunes(rune(a[i]), rune(b[i])) < 0
+		if unicode.IsUpper(ca) && unicode.IsLower(cb) {
+			return false
 		}
 	}
-	// If one is a prefix of the other, shorter comes first
-	return len(a) < len(b)
+	// If one string is a prefix of the other, shorter comes first
+	return len(ra) < len(rb)
 }
 
 func InsertSorted(name, colour, reset string, names []string) []string {
@@ -125,7 +96,7 @@ func InsertSortedByTime(name, colour, reset, dirPath string, names []string) []s
 		existingFilePath := joinPath(dirPath, cleanVal)
 		existingInfo, err := os.Stat(existingFilePath)
 		if err != nil {
-			// If we can't get the time, insert here
+			// If we can't get the time, insert burada
 			return append(names[:i], append([]string{colored}, names[i:]...)...)
 		}
 		existingTime := existingInfo.ModTime()
