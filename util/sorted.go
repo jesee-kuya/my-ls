@@ -12,18 +12,37 @@ import (
 // and is case-sensitive. After a common prefix, if both characters at the same position are
 // non-alphabetic, they are ignored until an alphabetic character is found in at least one string.
 // Alphabetic characters are prioritized over non-alphabetic ones, with lowercase before uppercase.
+// If both strings have the same alphabetic character (case-insensitive) at the same position,
+// the non-alphabetic characters immediately following the prefix are compared using ASCII values.
 func compareFilenames(a, b string) bool {
 	// Convert strings to runes for proper Unicode handling
 	ra, rb := []rune(a), []rune(b)
 
-	// Compare strings character by character
+	// Track the first position after the common prefix where both are non-alphabetic
+	var firstNonAlphaPos int = -1
+	prefixLen := 0
 	for i := 0; i < len(ra) && i < len(rb); i++ {
+		if ra[i] != rb[i] {
+			prefixLen = i
+			break
+		}
+	}
+	if prefixLen == len(ra) || prefixLen == len(rb) {
+		// If one string is a prefix of the other, shorter comes first
+		return len(ra) < len(rb)
+	}
+
+	// Compare strings character by character after the prefix
+	for i := prefixLen; i < len(ra) && i < len(rb); i++ {
 		ca, cb := ra[i], rb[i]
 		if ca == cb {
 			continue
 		}
-		// If both characters are non-alphabetic, skip to the next position
+		// If both characters are non-alphabetic, store the first such position and skip
 		if !unicode.IsLetter(ca) && !unicode.IsLetter(cb) {
+			if firstNonAlphaPos == -1 {
+				firstNonAlphaPos = i
+			}
 			continue
 		}
 		// If one is alphabetic and the other is not, prioritize the alphabetic character
@@ -46,6 +65,12 @@ func compareFilenames(a, b string) bool {
 		if unicode.IsUpper(ca) && unicode.IsLower(cb) {
 			return false
 		}
+		// If alphabetic characters are the same (case-insensitive), backtrack to compare
+		// the first non-alphabetic characters after the prefix using ASCII
+		if firstNonAlphaPos != -1 {
+			return ra[firstNonAlphaPos] < rb[firstNonAlphaPos]
+		}
+		// If no non-alphabetic characters were found, continue to next position
 	}
 	// If one string is a prefix of the other, shorter comes first
 	return len(ra) < len(rb)
