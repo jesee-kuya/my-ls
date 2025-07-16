@@ -13,7 +13,8 @@ import (
 // non-alphabetic, they are ignored until an alphabetic character is found in at least one string.
 // Alphabetic characters are prioritized over non-alphabetic ones, with lowercase before uppercase.
 // If both strings have the same alphabetic character (case-insensitive) at the same position,
-// the non-alphabetic characters immediately following the prefix are compared using ASCII values.
+// the non-alphabetic characters immediately following the prefix are compared using ASCII values,
+// with the smallest ASCII value coming first.
 func compareFilenames(a, b string) bool {
 	// Convert strings to runes for proper Unicode handling
 	ra, rb := []rune(a), []rune(b)
@@ -75,7 +76,7 @@ func compareFilenames(a, b string) bool {
 		// If alphabetic characters are the same (case-insensitive), backtrack to compare
 		// the first non-alphabetic characters after the prefix using ASCII
 		if firstNonAlphaPos != -1 {
-			return ra[firstNonAlphaPos] < rb[firstNonAlphaPos]
+			return ra[firstNonAlphaPos] < rb[firstNonAlphaPos] // Smallest ASCII comes first
 		}
 	}
 	return false // Equal up to the compared length
