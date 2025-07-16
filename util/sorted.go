@@ -8,8 +8,10 @@ import (
 )
 
 // compareFilenames implements locale-aware filename comparison similar to ls in en_US.UTF-8
-// It prioritizes lowercase over uppercase for all letters, deprioritizes punctuation, and is case-sensitive
-// compareFilenames compares two filenames and returns true if a should come before b.
+// It prioritizes lowercase over uppercase for all letters, deprioritizes non-alphabetic characters,
+// and is case-sensitive. After a common prefix, if both characters at the same position are
+// non-alphabetic, they are ignored until an alphabetic character is found in at least one string.
+// Alphabetic characters are prioritized over non-alphabetic ones, with lowercase before uppercase.
 func compareFilenames(a, b string) bool {
 	// Convert strings to runes for proper Unicode handling
 	ra, rb := []rune(a), []rune(b)
@@ -20,7 +22,18 @@ func compareFilenames(a, b string) bool {
 		if ca == cb {
 			continue
 		}
-		// Get lowercase versions for case-insensitive comparison
+		// If both characters are non-alphabetic, skip to the next position
+		if !unicode.IsLetter(ca) && !unicode.IsLetter(cb) {
+			continue
+		}
+		// If one is alphabetic and the other is not, prioritize the alphabetic character
+		if unicode.IsLetter(ca) && !unicode.IsLetter(cb) {
+			return true
+		}
+		if !unicode.IsLetter(ca) && unicode.IsLetter(cb) {
+			return false
+		}
+		// Both are alphabetic, use case-insensitive comparison
 		caLower, cbLower := unicode.ToLower(ca), unicode.ToLower(cb)
 		if caLower != cbLower {
 			// If lowercase versions differ, use them for ordering
