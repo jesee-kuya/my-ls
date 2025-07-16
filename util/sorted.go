@@ -27,13 +27,20 @@ func compareFilenames(a, b string) bool {
 			break
 		}
 	}
-	if prefixLen == len(ra) || prefixLen == len(rb) {
-		// If one string is a prefix of the other, shorter comes first
-		return len(ra) < len(rb)
+	if prefixLen == len(ra) && prefixLen == len(rb) {
+		return false // Equal strings
 	}
 
 	// Compare strings character by character after the prefix
-	for i := prefixLen; i < len(ra) && i < len(rb); i++ {
+	for i := prefixLen; i < len(ra) || i < len(rb); i++ {
+		// Handle cases where one string is longer than the other
+		if i >= len(ra) {
+			return !unicode.IsLetter(rb[i]) // Non-letter in b means a comes first, else b
+		}
+		if i >= len(rb) {
+			return unicode.IsLetter(ra[i]) // Letter in a means a comes first, else b
+		}
+
 		ca, cb := ra[i], rb[i]
 		if ca == cb {
 			continue
@@ -70,10 +77,8 @@ func compareFilenames(a, b string) bool {
 		if firstNonAlphaPos != -1 {
 			return ra[firstNonAlphaPos] < rb[firstNonAlphaPos]
 		}
-		// If no non-alphabetic characters were found, continue to next position
 	}
-	// If one string is a prefix of the other, shorter comes first
-	return len(ra) < len(rb)
+	return false // Equal up to the compared length
 }
 
 func InsertSorted(name, colour, reset string, names []string) []string {
