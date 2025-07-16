@@ -7,23 +7,21 @@ import (
 	"unicode"
 )
 
-// compareFilenames implements locale-aware filename comparison similar to standard ls
-// It treats punctuation (like _ and .) in a way that matches standard Unix sorting
+// compareFilenames implements locale-aware filename comparison similar to ls in en_US.UTF-8
+// It prioritizes alphanumeric characters over punctuation and performs case-sensitive sorting
 func compareFilenames(a, b string) bool {
 	// Helper function to strip non-alphanumeric characters for initial comparison
 	stripNonAlphanumeric := func(s string) string {
 		var result strings.Builder
 		for _, r := range s {
 			if unicode.IsLetter(r) || unicode.IsDigit(r) {
-				result.WriteRune(unicode.ToLower(r))
+				result.WriteRune(r) // Keep original case
 			}
 		}
 		return result.String()
 	}
 
-	// Convert to lowercase and strip non-alphanumeric for primary comparison
-	aLower := strings.ToLower(a)
-	bLower := strings.ToLower(b)
+	// Strip non-alphanumeric for primary comparison
 	aStripped := stripNonAlphanumeric(a)
 	bStripped := stripNonAlphanumeric(b)
 
@@ -34,7 +32,7 @@ func compareFilenames(a, b string) bool {
 
 	// If stripped versions are equal, fall back to full string comparison
 	// This ensures punctuation is considered in a stable way
-	return aLower < bLower
+	return a < b
 }
 
 func InsertSorted(name, colour, reset string, names []string) []string {
@@ -44,7 +42,8 @@ func InsertSorted(name, colour, reset string, names []string) []string {
 	colored := fmt.Sprintf("%s%s%s", colour, name, reset)
 
 	for i, val := range names {
-		if (compareFilenames(TrimStart(name), TrimStart(StripANSI(val))) || (strings.ToLower(TrimStart(name)) == strings.ToLower(TrimStart(StripANSI(val))))) && (val != "." && val != "..") {
+		cleanVal := TrimStart(StripANSI(val))
+		if (compareFilenames(TrimStart(name), cleanVal) || (TrimStart(name) == cleanVal)) && (val != "." && val != "..") {
 			return append(names[:i], append([]string{colored}, names[i:]...)...)
 		}
 	}
@@ -54,7 +53,9 @@ func InsertSorted(name, colour, reset string, names []string) []string {
 
 func InsertSortedLong(line string, lines []string) []string {
 	for i, val := range lines {
-		if (compareFilenames(TrimStart(StripANSI(StripLong(line))), TrimStart(StripANSI(StripLong(val))))) || (strings.ToLower(TrimStart(StripANSI(StripLong(line)))) == strings.ToLower(TrimStart(StripANSI(StripLong(val))))) {
+		lineName := TrimStart(StripANSI(StripLong(line)))
+		valName := TrimStart(StripANSI(StripLong(val)))
+		if compareFilenames(lineName, valName) || (lineName == valName) {
 			return append(lines[:i], append([]string{line}, lines[i:]...)...)
 		}
 	}
@@ -98,7 +99,7 @@ func InsertSortedByTime(name, colour, reset, dirPath string, names []string) []s
 		existingTime := existingInfo.ModTime()
 
 		// Insert if new file is newer (or same time, then alphabetical)
-		if newTime.After(existingTime) || (newTime.Equal(existingTime) && strings.ToLower(name) <= strings.ToLower(cleanVal)) {
+		if newTime.After(existingTime) || (newTime.Equal(existingTime) && compareFilenames(name, cleanVal)) {
 			return append(names[:i], append([]string{colored}, names[i:]...)...)
 		}
 	}
@@ -132,7 +133,7 @@ func InsertSortedLongByTime(line, dirPath string, lines []string) []string {
 		existingTime := existingInfo.ModTime()
 
 		// Insert if new file is newer (or same time, then alphabetical)
-		if newTime.After(existingTime) || (newTime.Equal(existingTime) && strings.ToLower(fileName) <= strings.ToLower(existingFileName)) {
+		if newTime.After(existingTime) || (newTime.Equal(existingTime) && compareFilenames(fileName, existingFileName)) {
 			return append(lines[:i], append([]string{line}, lines[i:]...)...)
 		}
 	}
