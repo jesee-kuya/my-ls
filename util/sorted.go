@@ -8,7 +8,7 @@ import (
 )
 
 // compareFilenames implements locale-aware filename comparison similar to ls in en_US.UTF-8
-// It prioritizes alphanumeric characters over punctuation and performs case-sensitive sorting
+// It prioritizes alphanumeric characters over punctuation, is case-sensitive, and sorts lowercase before uppercase
 func compareFilenames(a, b string) bool {
 	// Helper function to strip non-alphanumeric characters for initial comparison
 	stripNonAlphanumeric := func(s string) string {
@@ -21,18 +21,50 @@ func compareFilenames(a, b string) bool {
 		return result.String()
 	}
 
+	// Helper function to compare runes with lowercase before uppercase
+	compareRunes := func(a, b rune) int {
+		if a == b {
+			return 0
+		}
+		// If one is lowercase and the other uppercase, lowercase comes first
+		if unicode.IsLower(a) && unicode.IsUpper(b) {
+			return -1
+		}
+		if unicode.IsUpper(a) && unicode.IsLower(b) {
+			return 1
+		}
+		// Otherwise, compare by ASCII value
+		if a < b {
+			return -1
+		}
+		return 1
+	}
+
 	// Strip non-alphanumeric for primary comparison
 	aStripped := stripNonAlphanumeric(a)
 	bStripped := stripNonAlphanumeric(b)
 
 	// Compare stripped versions first (prioritizes alphanumeric content)
 	if aStripped != bStripped {
-		return aStripped < bStripped
+		// Compare rune by rune to prioritize lowercase
+		for i := 0; i < len(aStripped) && i < len(bStripped); i++ {
+			if aStripped[i] != bStripped[i] {
+				return compareRunes(rune(aStripped[i]), rune(bStripped[i])) < 0
+			}
+		}
+		// If one is a prefix of the other, shorter comes first
+		return len(aStripped) < len(bStripped)
 	}
 
 	// If stripped versions are equal, fall back to full string comparison
-	// This ensures punctuation is considered in a stable way
-	return a < b
+	// Compare rune by rune to prioritize lowercase
+	for i := 0; i < len(a) && i < len(b); i++ {
+		if a[i] != b[i] {
+			return compareRunes(rune(a[i]), rune(b[i])) < 0
+		}
+	}
+	// If one is a prefix of the other, shorter comes first
+	return len(a) < len(b)
 }
 
 func InsertSorted(name, colour, reset string, names []string) []string {
