@@ -4,34 +4,36 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
 )
 
 // compareFilenames implements locale-aware filename comparison similar to standard ls
 // It treats punctuation (like _ and .) in a way that matches standard Unix sorting
 func compareFilenames(a, b string) bool {
-	// Convert to lowercase for case-insensitive comparison
-	aLower := strings.ToLower(a)
-	bLower := strings.ToLower(b)
-
-	// For the specific case of readDir files, handle the underscore vs dot issue
-	// In Unix locale, underscore is typically sorted before dot when they're in similar positions
-	if strings.HasPrefix(aLower, "readdir") && strings.HasPrefix(bLower, "readdir") {
-		// Extract the part after "readdir"
-		aSuffix := aLower[7:] // Skip "readdir"
-		bSuffix := bLower[7:]
-
-		// If one starts with underscore and other with dot, underscore comes first
-		if len(aSuffix) > 0 && len(bSuffix) > 0 {
-			if aSuffix[0] == '_' && bSuffix[0] == '.' {
-				return true
-			}
-			if aSuffix[0] == '.' && bSuffix[0] == '_' {
-				return false
+	// Helper function to strip non-alphanumeric characters for initial comparison
+	stripNonAlphanumeric := func(s string) string {
+		var result strings.Builder
+		for _, r := range s {
+			if unicode.IsLetter(r) || unicode.IsDigit(r) {
+				result.WriteRune(unicode.ToLower(r))
 			}
 		}
+		return result.String()
 	}
 
-	// Default to standard string comparison
+	// Convert to lowercase and strip non-alphanumeric for primary comparison
+	aLower := strings.ToLower(a)
+	bLower := strings.ToLower(b)
+	aStripped := stripNonAlphanumeric(a)
+	bStripped := stripNonAlphanumeric(b)
+
+	// Compare stripped versions first (prioritizes alphanumeric content)
+	if aStripped != bStripped {
+		return aStripped < bStripped
+	}
+
+	// If stripped versions are equal, fall back to full string comparison
+	// This ensures punctuation is considered in a stable way
 	return aLower < bLower
 }
 
