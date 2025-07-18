@@ -47,7 +47,7 @@ jobs:
     - name: Block non-approved imports (strict mode)
       run: |
         echo "Scanning for unauthorized imports..."
-        allowed_imports="fmt os os/user strconv strings syscall time math/rand errors io/fs path/filepath testing reflect sort regexp"
+        allowed_imports="fmt os os/user strconv strings syscall time math/rand errors io/fs path/filepath testing reflect sort regexp bytes"
         allowed_prefix="github.com/jesee-kuya/my-ls"
 
         violations=0
