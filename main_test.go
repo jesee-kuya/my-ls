@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/jesee-kuya/my-ls/util"
@@ -429,5 +432,169 @@ func TestFlagFormatEquivalence(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// captureOutput captures stdout during function execution
+func captureOutput(f func()) string {
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	f()
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	return buf.String()
+}
+
+func TestMain_NoArgs(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir := t.TempDir()
+
+	// Create a test file
+	testFile := filepath.Join(tempDir, "test.txt")
+	err := os.WriteFile(testFile, []byte("test content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// Change to the temp directory
+	oldDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current directory: %v", err)
+	}
+	defer os.Chdir(oldDir)
+
+	err = os.Chdir(tempDir)
+	if err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+
+	// Save original os.Args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Test main with no arguments
+	os.Args = []string{"my-ls"}
+
+	output := captureOutput(func() {
+		main()
+	})
+
+	if !strings.Contains(output, "test.txt") {
+		t.Errorf("Expected output to contain 'test.txt', got: %s", output)
+	}
+}
+
+func TestMain_WithArgs(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir := t.TempDir()
+
+	// Create test files
+	testFile := filepath.Join(tempDir, "test.txt")
+	err := os.WriteFile(testFile, []byte("test content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	hiddenFile := filepath.Join(tempDir, ".hidden")
+	err = os.WriteFile(hiddenFile, []byte("hidden content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create hidden file: %v", err)
+	}
+
+	// Save original os.Args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Test main with -a flag
+	os.Args = []string{"my-ls", "-a", tempDir}
+
+	output := captureOutput(func() {
+		main()
+	})
+
+	if !strings.Contains(output, "test.txt") {
+		t.Errorf("Expected output to contain 'test.txt', got: %s", output)
+	}
+
+	if !strings.Contains(output, ".hidden") {
+		t.Errorf("Expected output to contain '.hidden' with -a flag, got: %s", output)
+	}
+}
+
+func TestMain_LongFormat(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir := t.TempDir()
+
+	// Create a test file
+	testFile := filepath.Join(tempDir, "test.txt")
+	err := os.WriteFile(testFile, []byte("test content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	// Save original os.Args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Test main with -l flag
+	os.Args = []string{"my-ls", "-l", tempDir}
+
+	output := captureOutput(func() {
+		main()
+	})
+
+	if !strings.Contains(output, "test.txt") {
+		t.Errorf("Expected output to contain 'test.txt', got: %s", output)
+	}
+
+	if !strings.Contains(output, "total") {
+		t.Errorf("Expected output to contain 'total' in long format, got: %s", output)
+	}
+}
+
+func TestMain_CombinedFlags(t *testing.T) {
+	// Create a temporary directory for testing
+	tempDir := t.TempDir()
+
+	// Create test files
+	testFile := filepath.Join(tempDir, "test.txt")
+	err := os.WriteFile(testFile, []byte("test content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create test file: %v", err)
+	}
+
+	hiddenFile := filepath.Join(tempDir, ".hidden")
+	err = os.WriteFile(hiddenFile, []byte("hidden content"), 0644)
+	if err != nil {
+		t.Fatalf("Failed to create hidden file: %v", err)
+	}
+
+	// Save original os.Args
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Test main with combined flags
+	os.Args = []string{"my-ls", "-la", tempDir}
+
+	output := captureOutput(func() {
+		main()
+	})
+
+	if !strings.Contains(output, "test.txt") {
+		t.Errorf("Expected output to contain 'test.txt', got: %s", output)
+	}
+
+	if !strings.Contains(output, ".hidden") {
+		t.Errorf("Expected output to contain '.hidden' with -a flag, got: %s", output)
+	}
+
+	if !strings.Contains(output, "total") {
+		t.Errorf("Expected output to contain 'total' in long format, got: %s", output)
 	}
 }
