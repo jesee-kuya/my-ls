@@ -92,13 +92,20 @@ func TestCompareStrings(t *testing.T) {
 			name:     "complex mixed case",
 			a:        "File1",
 			b:        "file2",
-			expected: false, // "file" part is same, "1" vs "2" - lexicographic comparison
+			expected: true, // Significant parts: file1 vs. file2, 1 < 2
 		},
 		{
 			name:     "numbers and letters",
 			a:        "file10",
 			b:        "file2",
-			expected: true, // "file" part is same, "10" vs "2" - lexicographic comparison, "1" < "2"
+			expected: true, // Significant parts: file10 vs. file2, 1 < 2
+		},
+		// Numeric vs. alphabetic
+		{
+			name:     "numeric before alphabetic",
+			a:        "a1b",
+			b:        "aab",
+			expected: true, // Significant parts: a1b vs. aab, 1 < a
 		},
 	}
 
