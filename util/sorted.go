@@ -4,30 +4,29 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"unicode"
 )
 
 // CompareStrings compares two strings based on custom sorting rules.
 // Significant parts (numeric and alphabetic characters) are compared first, with numeric characters before alphabetic.
-// Numeric characters are compared by ASCII values, alphabetic characters case-insensitively with lowercase prioritized.
+// Numeric characters (0-9) are compared by ASCII values, alphabetic characters (a-z, A-Z) case-insensitively with lowercase prioritized.
 // If significant parts are equal, compare original strings character by character:
 // - Numeric vs. anything: numeric comes first.
 // - Alphabetic vs. alphabetic: lowercase before uppercase, case-insensitive otherwise.
 // - Other pairs (special vs. special, alphabetic vs. special): ASCII order.
 func CompareStrings(a, b string) bool {
-	// Convert strings to runes for proper Unicode handling
+	// Convert strings to runes for proper handling
 	ra, rb := []rune(a), []rune(b)
 
 	// Check if both strings contain only special (non-alphabetic, non-numeric) characters
 	hasSignificantA, hasSignificantB := false, false
 	for _, r := range ra {
-		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
 			hasSignificantA = true
 			break
 		}
 	}
 	for _, r := range rb {
-		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
 			hasSignificantB = true
 			break
 		}
@@ -47,16 +46,16 @@ func CompareStrings(a, b string) bool {
 	// If either string has significant characters (letters or digits), compare significant parts first
 	var sigA, sigB []rune
 	for _, r := range ra {
-		if unicode.IsLetter(r) {
-			sigA = append(sigA, unicode.ToLower(r))
-		} else if unicode.IsDigit(r) {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
+			sigA = append(sigA, []rune(strings.ToLower(string(r)))[0])
+		} else if r >= '0' && r <= '9' {
 			sigA = append(sigA, r)
 		}
 	}
 	for _, r := range rb {
-		if unicode.IsLetter(r) {
-			sigB = append(sigB, unicode.ToLower(r))
-		} else if unicode.IsDigit(r) {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
+			sigB = append(sigB, []rune(strings.ToLower(string(r)))[0])
+		} else if r >= '0' && r <= '9' {
 			sigB = append(sigB, r)
 		}
 	}
@@ -67,12 +66,11 @@ func CompareStrings(a, b string) bool {
 		if ca == cb {
 			continue
 		}
-
 		// If one is numeric and the other alphabetic, numeric comes first
-		if unicode.IsDigit(ca) && unicode.IsLetter(cb) {
+		if (ca >= '0' && ca <= '9') && ((cb >= 'a' && cb <= 'z') || (cb >= 'A' && cb <= 'Z')) {
 			return true
 		}
-		if unicode.IsLetter(ca) && unicode.IsDigit(cb) {
+		if ((ca >= 'a' && ca <= 'z') || (ca >= 'A' && ca <= 'Z')) && (cb >= '0' && cb <= '9') {
 			return false
 		}
 		// If both are alphabetic or both numeric, compare directly
@@ -90,26 +88,27 @@ func CompareStrings(a, b string) bool {
 			continue
 		}
 		// Prioritize numeric characters over all others
-		if unicode.IsDigit(ca) && !unicode.IsDigit(cb) {
+		if (ca >= '0' && ca <= '9') && !(cb >= '0' && cb <= '9') {
 			return true
 		}
-		if !unicode.IsDigit(ca) && unicode.IsDigit(cb) {
+		if !(ca >= '0' && ca <= '9') && (cb >= '0' && cb <= '9') {
 			return false
 		}
-		if unicode.IsDigit(ca) && unicode.IsDigit(cb) {
+		if (ca >= '0' && ca <= '9') && (cb >= '0' && cb <= '9') {
 			return ca < cb
 		}
 		// If both are alphabetic, prioritize lowercase
-		if unicode.IsLetter(ca) && unicode.IsLetter(cb) {
-			caLower, cbLower := unicode.ToLower(ca), unicode.ToLower(cb)
+		if ((ca >= 'a' && ca <= 'z') || (ca >= 'A' && ca <= 'Z')) && ((cb >= 'a' && cb <= 'z') || (cb >= 'A' && cb <= 'Z')) {
+			caLower := []rune(strings.ToLower(string(ca)))[0]
+			cbLower := []rune(strings.ToLower(string(cb)))[0]
 			if caLower != cbLower {
 				return caLower < cbLower
 			}
 			// If lowercase versions are equal, lowercase comes before uppercase
-			if unicode.IsLower(ca) && unicode.IsUpper(cb) {
+			if (ca >= 'a' && ca <= 'z') && (cb >= 'A' && cb <= 'Z') {
 				return true
 			}
-			if unicode.IsUpper(ca) && unicode.IsLower(cb) {
+			if (ca >= 'A' && ca <= 'Z') && (cb >= 'a' && cb <= 'z') {
 				return false
 			}
 			continue
