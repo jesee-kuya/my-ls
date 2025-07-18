@@ -218,7 +218,7 @@ func TestTimeSortFunctionality(t *testing.T) {
 	})
 }
 
-func TestInsertSortedByTime(t *testing.T) {
+func TestInsertSortedByTimeIntegration(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create test files with known modification times
