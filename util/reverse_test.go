@@ -48,9 +48,9 @@ func TestReverse(t *testing.T) {
 			// Make a copy of input to avoid modifying the test data
 			input := make([]string, len(tt.input))
 			copy(input, tt.input)
-			
+
 			Reverse(input)
-			
+
 			if !reflect.DeepEqual(input, tt.expected) {
 				t.Errorf("Reverse() = %v, want %v", input, tt.expected)
 			}
@@ -86,9 +86,9 @@ func TestReverse_IntSlice(t *testing.T) {
 			// Make a copy of input to avoid modifying the test data
 			input := make([]int, len(tt.input))
 			copy(input, tt.input)
-			
+
 			Reverse(input)
-			
+
 			if !reflect.DeepEqual(input, tt.expected) {
 				t.Errorf("Reverse() = %v, want %v", input, tt.expected)
 			}
@@ -100,9 +100,9 @@ func TestReverse_ModifiesOriginalSlice(t *testing.T) {
 	// Test that Reverse modifies the original slice in place
 	original := []string{"a", "b", "c"}
 	expected := []string{"c", "b", "a"}
-	
+
 	Reverse(original)
-	
+
 	if !reflect.DeepEqual(original, expected) {
 		t.Errorf("Reverse() should modify original slice in place, got %v, want %v", original, expected)
 	}
@@ -110,7 +110,7 @@ func TestReverse_ModifiesOriginalSlice(t *testing.T) {
 
 func TestReverse_GenericTypes(t *testing.T) {
 	// Test with different types to ensure generic functionality works
-	
+
 	// Test with float64
 	floats := []float64{1.1, 2.2, 3.3}
 	expectedFloats := []float64{3.3, 2.2, 1.1}
@@ -118,7 +118,7 @@ func TestReverse_GenericTypes(t *testing.T) {
 	if !reflect.DeepEqual(floats, expectedFloats) {
 		t.Errorf("Reverse() with float64 = %v, want %v", floats, expectedFloats)
 	}
-	
+
 	// Test with bool
 	bools := []bool{true, false, true}
 	expectedBools := []bool{true, false, true}
