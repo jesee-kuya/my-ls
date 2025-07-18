@@ -8,32 +8,33 @@ import (
 )
 
 // CompareStrings compares two strings based on custom sorting rules.
-// If both strings contain only special (non-alphabetic) characters, sort by ASCII values (lowest first).
-// If strings contain alphabetic characters, compare case-insensitively, prioritizing lowercase over uppercase.
-// For mixed strings, compare alphabetic parts first (ignoring special characters, shorter comes first),
-// then compare original strings character by character: lowercase before uppercase for alphabetic pairs,
-// ASCII order for all other pairs.
+// Significant parts (numeric and alphabetic characters) are compared first, with numeric characters before alphabetic.
+// Numeric characters are compared by ASCII values, alphabetic characters case-insensitively with lowercase prioritized.
+// If significant parts are equal, compare original strings character by character:
+// - Numeric vs. anything: numeric comes first.
+// - Alphabetic vs. alphabetic: lowercase before uppercase, case-insensitive otherwise.
+// - Other pairs (special vs. special, alphabetic vs. special): ASCII order.
 func CompareStrings(a, b string) bool {
 	// Convert strings to runes for proper Unicode handling
 	ra, rb := []rune(a), []rune(b)
 
-	// Check if both strings contain only special (non-alphabetic) characters
-	hasLetterA, hasLetterB := false, false
+	// Check if both strings contain only special (non-alphabetic, non-numeric) characters
+	hasSignificantA, hasSignificantB := false, false
 	for _, r := range ra {
-		if unicode.IsLetter(r) {
-			hasLetterA = true
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			hasSignificantA = true
 			break
 		}
 	}
 	for _, r := range rb {
-		if unicode.IsLetter(r) {
-			hasLetterB = true
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			hasSignificantB = true
 			break
 		}
 	}
 
-	// If both strings have only special characters, compare by ASCII values
-	if !hasLetterA && !hasLetterB {
+	// If both strings have only special characters (no letters or digits), compare by ASCII values
+	if !hasSignificantA && !hasSignificantB {
 		for i := 0; i < len(ra) && i < len(rb); i++ {
 			if ra[i] != rb[i] {
 				return ra[i] < rb[i]
@@ -43,35 +44,60 @@ func CompareStrings(a, b string) bool {
 		return len(ra) < len(rb)
 	}
 
-	// If either string has alphabetic characters, compare alphabetic parts first
-	var alphaA, alphaB []rune
+	// If either string has significant characters (letters or digits), compare significant parts first
+	var sigA, sigB []rune
 	for _, r := range ra {
 		if unicode.IsLetter(r) {
-			alphaA = append(alphaA, unicode.ToLower(r))
+			sigA = append(sigA, unicode.ToLower(r))
+		} else if unicode.IsDigit(r) {
+			sigA = append(sigA, r)
 		}
 	}
 	for _, r := range rb {
 		if unicode.IsLetter(r) {
-			alphaB = append(alphaB, unicode.ToLower(r))
+			sigB = append(sigB, unicode.ToLower(r))
+		} else if unicode.IsDigit(r) {
+			sigB = append(sigB, r)
 		}
 	}
 
-	// Compare alphabetic parts (case-insensitive)
-	for i := 0; i < len(alphaA) && i < len(alphaB); i++ {
-		if alphaA[i] != alphaB[i] {
-			return alphaA[i] < alphaB[i]
+	// Compare significant parts (numeric before alphabetic, alphabetic case-insensitive)
+	for i := 0; i < len(sigA) && i < len(sigB); i++ {
+		ca, cb := sigA[i], sigB[i]
+		if ca == cb {
+			continue
 		}
+
+		// If one is numeric and the other alphabetic, numeric comes first
+		if unicode.IsDigit(ca) && unicode.IsLetter(cb) {
+			return true
+		}
+		if unicode.IsLetter(ca) && unicode.IsDigit(cb) {
+			return false
+		}
+		// If both are alphabetic or both numeric, compare directly
+		return ca < cb
 	}
-	// If alphabetic parts are equal, shorter alphabetic part comes first
-	if len(alphaA) != len(alphaB) {
-		return len(alphaA) < len(alphaB)
+	// If significant parts are equal, shorter significant part comes first
+	if len(sigA) != len(sigB) {
+		return len(sigA) < len(sigB)
 	}
 
-	// If alphabetic parts are equal, compare original strings character by character
+	// If significant parts are equal, compare original strings character by character
 	for i := 0; i < len(ra) && i < len(rb); i++ {
 		ca, cb := ra[i], rb[i]
 		if ca == cb {
 			continue
+		}
+		// Prioritize numeric characters over all others
+		if unicode.IsDigit(ca) && !unicode.IsDigit(cb) {
+			return true
+		}
+		if !unicode.IsDigit(ca) && unicode.IsDigit(cb) {
+			return false
+		}
+		if unicode.IsDigit(ca) && unicode.IsDigit(cb) {
+			return ca < cb
 		}
 		// If both are alphabetic, prioritize lowercase
 		if unicode.IsLetter(ca) && unicode.IsLetter(cb) {
