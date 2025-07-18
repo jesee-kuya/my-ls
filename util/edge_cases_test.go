@@ -270,7 +270,7 @@ func TestGetStat_EdgeCases(t *testing.T) {
 
 	// Test getStat function
 	stat := getStat(testFile)
-	
+
 	// Basic checks - the function should return a valid stat structure
 	if stat.Size == 0 {
 		t.Errorf("Expected non-zero size for test file")
