@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -375,8 +374,8 @@ func TestInsertSortedLongByTime(t *testing.T) {
 		t.Fatalf("Failed to create test file: %v", err)
 	}
 
-	newLine := fmt.Sprintf("-rw-r--r--  1 user group  100 Jan  1 12:00 new.txt")
-	oldLine := fmt.Sprintf("-rw-r--r--  1 user group  100 Jan  1 12:00 old.txt")
+	newLine := "-rw-r--r--  1 user group  100 Jan  1 12:00 new.txt"
+	oldLine := "-rw-r--r--  1 user group  100 Jan  1 12:00 old.txt"
 
 	result := InsertSortedLongByTime(newLine, tempDir, []string{oldLine})
 	expected := []string{newLine, oldLine}
