@@ -86,10 +86,10 @@ func TestFormatTime(t *testing.T) {
 func TestFormatTime_ConsistentFormat(t *testing.T) {
 	// Test that the format is consistent with Go's time formatting
 	testTime := time.Date(2023, time.January, 15, 14, 30, 0, 0, time.UTC)
-	
+
 	result := FormatTime(testTime)
 	expected := testTime.Format("Jan _2 15:04")
-	
+
 	if result != expected {
 		t.Errorf("FormatTime() format inconsistent with Go's time.Format(), got %q, want %q", result, expected)
 	}
@@ -100,16 +100,16 @@ func TestFormatTime_EdgeCases(t *testing.T) {
 	zeroTime := time.Time{}
 	result := FormatTime(zeroTime)
 	expected := zeroTime.Format("Jan _2 15:04")
-	
+
 	if result != expected {
 		t.Errorf("FormatTime() with zero time = %q, want %q", result, expected)
 	}
-	
+
 	// Test with Unix epoch
 	epochTime := time.Unix(0, 0).UTC()
 	result = FormatTime(epochTime)
 	expected = epochTime.Format("Jan _2 15:04")
-	
+
 	if result != expected {
 		t.Errorf("FormatTime() with Unix epoch = %q, want %q", result, expected)
 	}
@@ -118,17 +118,17 @@ func TestFormatTime_EdgeCases(t *testing.T) {
 func TestFormatTime_DifferentTimezones(t *testing.T) {
 	// Test that the function works with different timezones
 	baseTime := time.Date(2023, time.January, 15, 14, 30, 0, 0, time.UTC)
-	
+
 	// Convert to different timezone
 	loc, err := time.LoadLocation("America/New_York")
 	if err != nil {
 		t.Skip("Could not load timezone for test")
 	}
-	
+
 	nyTime := baseTime.In(loc)
 	result := FormatTime(nyTime)
 	expected := nyTime.Format("Jan _2 15:04")
-	
+
 	if result != expected {
 		t.Errorf("FormatTime() with timezone = %q, want %q", result, expected)
 	}
