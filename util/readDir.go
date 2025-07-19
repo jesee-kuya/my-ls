@@ -369,7 +369,7 @@ func collectSubdirectories(dirPath string, flags Flags, allDirs *[]string, visit
 		return err
 	}
 
-	// Collect directories first, then sort them to match ls behavior
+	// Collect directories first
 	var subdirs []string
 	for _, entry := range entries {
 		name := entry.Name()
@@ -389,8 +389,10 @@ func collectSubdirectories(dirPath string, flags Flags, allDirs *[]string, visit
 		}
 	}
 
-	// Sort directories alphabetically to match standard ls behavior
-	sort.Strings(subdirs)
+	// Sort directories using CompareStrings
+	sort.Slice(subdirs, func(i, j int) bool {
+		return CompareStrings(subdirs[i], subdirs[j])
+	})
 
 	// Process sorted directories
 	for _, name := range subdirs {
