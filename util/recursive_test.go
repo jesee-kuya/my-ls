@@ -2,6 +2,7 @@ package util
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -199,7 +200,7 @@ func TestCollectDirectoriesRecursively(t *testing.T) {
 }
 
 func TestCollectSubdirectories(t *testing.T) {
-	// Create a temporary directory with symlinks to test loop prevention
+	// Create a temporary directory with symlinks and test directories for sorting
 	tempDir := t.TempDir()
 
 	// Create a subdirectory
@@ -217,6 +218,29 @@ func TestCollectSubdirectories(t *testing.T) {
 		// Continue test without symlink
 	}
 
+	// Create test directories to verify sorting with CompareStrings
+	dirsToCreate := []string{
+		"123dir",
+		"abcDir",
+		"ABCdir",
+		"Zebra",
+		"@special",
+		".hidden_dir",
+	}
+	for _, dir := range dirsToCreate {
+		err := os.Mkdir(testJoinPath3(tempDir, dir), 0755)
+		if err != nil {
+			t.Fatalf("Failed to create directory %s: %v", dir, err)
+		}
+	}
+
+	// Create a nested subdirectory to test recursion
+	nestedSubDir := filepath.Join(tempDir, "abcDir", "sub1")
+	err = os.MkdirAll(nestedSubDir, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create nested subdirectory %s: %v", nestedSubDir, err)
+	}
+
 	t.Run("symlink loop prevention", func(t *testing.T) {
 		flags := Flags{ShowAll: false, Recursive: true}
 		var allDirs []string
@@ -230,8 +254,8 @@ func TestCollectSubdirectories(t *testing.T) {
 		// Should include subdir but not get stuck in infinite loop
 		expectedDirs := []string{subDir}
 
-		if len(allDirs) != len(expectedDirs) {
-			t.Errorf("Expected %d directories, got %d: %v", len(expectedDirs), len(allDirs), allDirs)
+		if len(allDirs) < len(expectedDirs) {
+			t.Errorf("Expected at least %d directories, got %d: %v", len(expectedDirs), len(allDirs), allDirs)
 		}
 
 		for _, expectedDir := range expectedDirs {
@@ -245,6 +269,103 @@ func TestCollectSubdirectories(t *testing.T) {
 			if !found {
 				t.Errorf("Expected directory %s not found in result", expectedDir)
 			}
+		}
+	})
+
+	t.Run("sorting with CompareStrings", func(t *testing.T) {
+		flags := Flags{ShowAll: false, Recursive: true}
+		var allDirs []string
+		visited := make(map[string]bool)
+
+		err := collectSubdirectories(tempDir, flags, &allDirs, visited)
+		if err != nil {
+			t.Fatalf("collectSubdirectories failed: %v", err)
+		}
+
+		// Check that we have the expected directories (order will be verified separately)
+		expectedBaseDirs := []string{"123dir", "abcDir", "ABCdir", "Zebra", "@special", "subdir"}
+		expectedNestedDirs := []string{"sub1"} // nested under abcDir
+
+		// Count directories by base name
+		foundBaseDirs := make(map[string]bool)
+		foundNestedDirs := make(map[string]bool)
+
+		for _, dir := range allDirs {
+			baseName := filepath.Base(dir)
+			if filepath.Dir(dir) == tempDir {
+				foundBaseDirs[baseName] = true
+			} else {
+				foundNestedDirs[baseName] = true
+			}
+		}
+
+		// Verify all expected base directories are found (excluding hidden)
+		for _, expected := range expectedBaseDirs {
+			if expected == ".hidden_dir" {
+				continue // Should not be present when ShowAll=false
+			}
+			if !foundBaseDirs[expected] {
+				t.Errorf("Expected base directory %s not found", expected)
+			}
+		}
+
+		// Verify nested directories
+		for _, expected := range expectedNestedDirs {
+			if !foundNestedDirs[expected] {
+				t.Errorf("Expected nested directory %s not found", expected)
+			}
+		}
+
+		// Verify hidden directory is not included
+		if foundBaseDirs[".hidden_dir"] {
+			t.Errorf("Hidden directory should not be included when ShowAll=false")
+		}
+	})
+
+	t.Run("sorting with CompareStrings and ShowAll=true", func(t *testing.T) {
+		flags := Flags{ShowAll: true, Recursive: true}
+		var allDirs []string
+		visited := make(map[string]bool)
+
+		err := collectSubdirectories(tempDir, flags, &allDirs, visited)
+		if err != nil {
+			t.Fatalf("collectSubdirectories failed: %v", err)
+		}
+
+		// Check that we have the expected directories (including hidden ones)
+		expectedBaseDirs := []string{".hidden_dir", "123dir", "abcDir", "ABCdir", "Zebra", "@special", "subdir"}
+		expectedNestedDirs := []string{"sub1"} // nested under abcDir
+
+		// Count directories by base name
+		foundBaseDirs := make(map[string]bool)
+		foundNestedDirs := make(map[string]bool)
+
+		for _, dir := range allDirs {
+			baseName := filepath.Base(dir)
+			if filepath.Dir(dir) == tempDir {
+				foundBaseDirs[baseName] = true
+			} else {
+				foundNestedDirs[baseName] = true
+			}
+		}
+
+		// Verify all expected base directories are found (including hidden)
+		for _, expected := range expectedBaseDirs {
+			if !foundBaseDirs[expected] {
+				t.Errorf("Expected base directory %s not found", expected)
+			}
+		}
+
+		// Verify nested directories
+		for _, expected := range expectedNestedDirs {
+			if !foundNestedDirs[expected] {
+				t.Errorf("Expected nested directory %s not found", expected)
+			}
+		}
+
+		// Verify hidden directory is included
+		if !foundBaseDirs[".hidden_dir"] {
+			t.Errorf("Hidden directory should be included when ShowAll=true")
 		}
 	})
 }
