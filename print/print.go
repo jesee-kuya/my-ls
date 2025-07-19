@@ -198,7 +198,7 @@ func Print(paths []string, flags util.Flags) {
 		}
 
 		if i == len(singleFiles)-1 {
-			fmt.Print(file + "\n\n")
+			fmt.Print(file + "\n")
 			continue
 		}
 		fmt.Print(file + "  ")
